@@ -1,0 +1,106 @@
+body {
+  font-size: 24px;
+  font-family: Helvetica, sans-serif;
+  background: #fff;
+  color: #333;
+  margin: 0;
+  margin-bottom: 2rem;
+}
+
+.invisible {
+  visibility: hidden;
+}
+
+#status-message {
+  background-color: hsla(0, 100%, 50%, 0.8);
+  margin: 1rem;
+  padding: 1rem;
+  text-shadow: none;
+}
+
+ul {
+  list-style-type: none;
+}
+
+button {
+  font-size: 1.2em;
+  cursor: pointer;
+  padding: 0.5em;
+  border-radius: 0.5em;
+  border-width: 8px;
+  border-color: #333;
+  border-style: solid;
+  background-color: #fff;
+  min-width: 44px;
+}
+
+.outer-container {
+  display: flex;
+}
+
+a:link {
+  color: #222;
+  font-weight: 700;
+}
+
+a:visited {
+  color: #ddd;
+}
+
+#version-info {
+  position: absolute;
+  right: 1.5em;
+  top: 1.5em;
+  font-size: 0.5em;
+  color: #666;
+}
+
+.hidden {
+  opacity: 0;
+  transition: opacity 1s;
+  display: none;
+}
+
+.generation svg {
+  width: 640;
+  height: 320;
+  border: solid 1px #222;
+}
+
+.generation text {
+  fill: #444;
+  font-size: 2.5;
+  text-anchor: middle;
+}
+
+.generation circle {
+}
+
+.generation span {
+  margin-right: 0.5em;
+}
+
+.substrates circle {
+  fill: #fff;
+}
+
+.substrates {
+  border: 8px solid hsl(210, 50%, 50%);
+  font-weight: bold;
+}
+
+.enzymes circle {
+  stroke: #444;
+  stroke-width: 0.1;
+  fill: hsla(0, 0%, 0%, 0.05);
+}
+
+.enzymes text {
+  font-style: italic;
+}
+
+@media all and (max-height: 568px) {
+  body {
+    font-size: 18px;
+  }
+}

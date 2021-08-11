@@ -1,0 +1,40 @@
+<html>
+  <head>
+    <title>ChannelVcdr</title>
+    <link rel="stylesheet" href="app.css" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+  </head>
+  <body>
+    <div id="status-message" class="hidden"></div>
+
+    <h1 class="title">
+      ChannelVcdr
+    </h1>
+
+    <div class="intro-description">A crude channel vocoder</div>
+
+    <label for="file1">Carrier audio</input>
+    <input id="file1" class="input-source" type="file" accept="audio/*, .m4a,.ogg,.mp3,.wav" />
+
+    <div class="file1-audio hidden">
+      <audio class="file1-audio-player" controls></audio>
+    </div>
+
+    <label for="file2">Information audio</input>
+    <input id="file2" class="input-source" type="file" accept="audio/*, .m4a,.ogg,.mp3,.wav" />
+    <div class="file2-audio hidden">
+      <audio class="file2-audio-player" controls></audio>
+    </div>
+
+    <div class="blend-controls"></div>
+
+    <div class="result-audio hidden">
+      <audio class="result-audio-player" controls></audio>
+    </div>
+
+    <div id="version-info"></div>
+
+    <script src="index.js"></script>
+  </body>
+</html>
