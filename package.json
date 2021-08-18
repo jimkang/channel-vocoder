@@ -59,6 +59,7 @@
     "oknok": "^3.0.0",
     "one-listener-per-element": "^1.0.1",
     "probable": "^2.1.4",
+    "render-audio": "^1.0.0",
     "request-body-mover": "^1.0.1",
     "route-state": "^2.0.5",
     "sanitize-html": "^1.27.5",

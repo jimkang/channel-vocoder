@@ -3,12 +3,18 @@ import handleError from 'handle-error-web';
 import { version } from './package.json';
 import ep from 'errorback-promise';
 import { renderSources } from './renderers/render-sources';
-import { renderResultAudio } from './renderers/render-result-audio';
+import { renderAudio } from 'render-audio';
 import ContextKeeper from 'audio-context-singleton';
 import { decodeArrayBuffer } from './tasks/decode-array-buffer';
 import { queue } from 'd3-queue';
 
 var routeState;
+var carrierBuffer;
+var infoBuffer;
+
+var channelButton = document.getElementById('channel-button');
+channelButton.addEventListener('click', getChannelSignals);
+
 var { getCurrentContext } = ContextKeeper();
 
 (async function go() {
@@ -49,14 +55,19 @@ async function followRoute() {
       return;
     }
 
-    renderResultAudio({
-      audioBuffer: audioBuffers[0],
+    carrierBuffer = audioBuffers[0];
+    infoBuffer = audioBuffers[1];
+
+    renderAudio({
+      audioBuffer: carrierBuffer,
       containerSelector: '.file1-audio',
     });
-    renderResultAudio({
-      audioBuffer: audioBuffers[1],
+    renderAudio({
+      audioBuffer: infoBuffer,
       containerSelector: '.file2-audio',
     });
+
+    channelButton.classList.remove('hidden');
 
     //var combinedBuffer =
     //channel -
@@ -73,6 +84,8 @@ async function followRoute() {
     //});
   }
 }
+
+function getChannelSignals() {}
 
 function reportTopLevelError(msg, url, lineNo, columnNo, error) {
   handleError(error);
