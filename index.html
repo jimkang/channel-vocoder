@@ -14,14 +14,14 @@
 
     <div class="intro-description">A crude channel vocoder. Pick two audio files, then hit the vocode button.</div>
 
-    <label for="file1">Carrier audio</input>
+    <label for="file1">Carrier audio</label>
     <input id="file1" class="input-source" type="file" accept="audio/*, .m4a,.ogg,.mp3,.wav" />
 
     <div class="file1-audio hidden">
       <audio class="file1-audio-player" controls></audio>
     </div>
 
-    <label for="file2">Information audio</input>
+    <label for="file2">Information audio</label>
     <input id="file2" class="input-source" type="file" accept="audio/*, .m4a,.ogg,.mp3,.wav" />
     <div class="file2-audio hidden">
       <audio class="file2-audio-player" controls></audio>
@@ -30,6 +30,9 @@
     <div class="blend-controls"></div>
 
     <button id="channel-button" class="hidden">Get channel signals</button>
+
+    <div class="bandpass-results">
+    </div>
 
     <div class="result-audio hidden">
       <audio class="result-audio-player" controls></audio>

@@ -7,15 +7,31 @@ import { renderAudio } from 'render-audio';
 import ContextKeeper from 'audio-context-singleton';
 import { decodeArrayBuffer } from './tasks/decode-array-buffer';
 import { queue } from 'd3-queue';
+import { renderBuffers } from './renderers/render-buffers';
 
 var routeState;
 var carrierBuffer;
 var infoBuffer;
+var bandpassBuffersForFreqs = {};
+
+// https://patentimages.storage.googleapis.com/29/15/cf/13438f97b5d58c/US2121142.pdf
+var bandpassCenters = [
+  112.5,
+  337.5,
+  575,
+  850,
+  1200,
+  1700,
+  2350,
+  3250,
+  4600,
+  6450,
+];
 
 var channelButton = document.getElementById('channel-button');
 channelButton.addEventListener('click', getChannelSignals);
 
-var { getCurrentContext } = ContextKeeper();
+var { getNewContext } = ContextKeeper({ offline: true });
 
 (async function go() {
   window.onerror = reportTopLevelError;
@@ -29,14 +45,6 @@ var { getCurrentContext } = ContextKeeper();
 })();
 
 async function followRoute() {
-  var { error, values } = await ep(getCurrentContext);
-  if (error) {
-    handleError(error);
-    return;
-  }
-
-  var ctx = values[0];
-
   renderSources({ onBuffers });
 
   async function onBuffers(buffers) {
@@ -85,7 +93,54 @@ async function followRoute() {
   }
 }
 
-function getChannelSignals() {}
+function getChannelSignals() {
+  bandpassCenters.forEach(runBandpass);
+}
+
+async function runBandpass(frequency) {
+  var { error, values } = await ep(getNewContext, {
+    sampleRate: infoBuffer.sampleRate,
+    length: infoBuffer.length,
+    numberOfChannels: infoBuffer.numberOfChannels,
+  });
+  if (error) {
+    handleError(error);
+    return;
+  }
+  var bpCtx = values[0];
+
+  var infoBufferNode = bpCtx.createBufferSource();
+  infoBufferNode.buffer = infoBuffer;
+
+  var bpNode = new BiquadFilterNode(bpCtx, {
+    type: 'bandpass',
+    Q: 0.8,
+    frequency,
+  });
+
+  infoBufferNode.connect(bpNode);
+  bpNode.connect(bpCtx.destination);
+
+  bpCtx.startRendering().then(onRecordingEnd).catch(handleError);
+  infoBufferNode.start();
+
+  function onRecordingEnd(renderedBuffer) {
+    bandpassBuffersForFreqs[frequency] = renderedBuffer;
+    var labeledBuffers = [];
+
+    for (var freq in bandpassBuffersForFreqs) {
+      labeledBuffers.push({
+        label: freq,
+        buffer: bandpassBuffersForFreqs[freq],
+      });
+    }
+
+    renderBuffers({
+      labeledBuffers,
+      containerSelector: '.bandpass-results',
+    });
+  }
+}
 
 function reportTopLevelError(msg, url, lineNo, columnNo, error) {
   handleError(error);
