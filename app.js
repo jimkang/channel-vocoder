@@ -10,6 +10,8 @@ import { renderBuffers } from './renderers/render-buffers';
 import { to } from 'await-to-js';
 import curry from 'lodash.curry';
 
+var debug = true;
+
 var carrierBuffer;
 var infoBuffer;
 var labeledInfoBandpassBuffers = [];
@@ -19,27 +21,34 @@ var labeledModulatedBuffers = [];
 
 // https://patentimages.storage.googleapis.com/29/15/cf/13438f97b5d58c/US2121142.pdf
 var bandpassCenters = [
-  112.5,
+  //112.5,
   337.5,
   575,
   850,
   1200,
   1700,
   2350,
-  3250,
-  4600,
-  6450,
+  //3250,
+  //4600,
+  //6450,
 ];
 
 var channelButton = document.getElementById('channel-button');
 var envelopeButton = document.getElementById('envelope-button');
 var carrierChannelButton = document.getElementById('carrier-channel-button');
 var modulateButton = document.getElementById('modulate-button');
+var mergeButton = document.getElementById('merge-button');
+var carrierLevelInput = document.getElementById('carrier-level');
+var infoLevelInput = document.getElementById('info-level');
+var smoothingUpInput = document.getElementById('smoothing-factor-up');
+var smoothingDownInput = document.getElementById('smoothing-factor-down');
+var qInput = document.getElementById('q-val');
 
 channelButton.addEventListener('click', getChannelSignals);
 envelopeButton.addEventListener('click', getEnvelopes);
 carrierChannelButton.addEventListener('click', getCarrierChannelSignals);
 modulateButton.addEventListener('click', modulateCarrierBandpasses);
+mergeButton.addEventListener('click', mergeModulated);
 
 var { getNewContext } = ContextKeeper({ offline: true });
 
@@ -78,6 +87,7 @@ var { getNewContext } = ContextKeeper({ offline: true });
     });
 
     channelButton.classList.remove('hidden');
+    debug ? channelButton.click() : null;
   }
 })();
 
@@ -126,7 +136,7 @@ async function runBandpass(
 
   var bpNode = new BiquadFilterNode(bpCtx, {
     type: 'bandpass',
-    Q: 0.8,
+    Q: +qInput.value,
     frequency,
   });
 
@@ -179,11 +189,12 @@ async function runEnvelope({ label, buffer }) {
     return;
   }
 
-  var efNode = new AudioWorkletNode(
-    efCtx,
-    'envelope-follower-processor',
-    { processorOptions: { smoothingFactor: 0.8 } } // +smoothingField.value } }
-  );
+  var efNode = new AudioWorkletNode(efCtx, 'envelope-follower-processor', {
+    processorOptions: {
+      smoothingFactorUp: +smoothingUpInput.value,
+      smoothingFactorDown: +smoothingDownInput.value,
+    },
+  });
   bufferNode.connect(efNode);
   efNode.connect(efCtx.destination);
 
@@ -232,18 +243,17 @@ async function runMultiply({ label, buffer }) {
   var envelopeNode = mCtx.createBufferSource();
   envelopeNode.buffer = labeledEnvelope.buffer;
 
-  var [mError] = await to(
-    mCtx.audioWorklet.addModule('modules/multiply-signals.js')
-  );
-  if (mError) {
-    handleError(mError);
-    return;
-  }
-
   var mNode = new GainNode(mCtx);
+  var carrierAmpNode = new GainNode(mCtx);
+  carrierAmpNode.gain.value = +carrierLevelInput.value;
+  var infoAmpNode = new GainNode(mCtx);
+  // Why??
+  infoAmpNode.gain.value = -1.0 * +infoLevelInput.value;
 
-  bufferNode.connect(mNode);
-  envelopeNode.connect(mNode.gain);
+  bufferNode.connect(carrierAmpNode);
+  carrierAmpNode.connect(mNode);
+  envelopeNode.connect(infoAmpNode);
+  infoAmpNode.connect(mNode.gain);
   mNode.connect(mCtx.destination);
 
   mCtx.startRendering().then(onRecordingEnd).catch(handleError);
@@ -256,6 +266,42 @@ async function runMultiply({ label, buffer }) {
     renderBuffers({
       labeledBuffers: labeledModulatedBuffers,
       containerSelector: '.modulated-carrier-bandpasses',
+    });
+    mergeButton.classList.remove('hidden');
+
+    debug ? mergeButton.click() : null;
+  }
+}
+
+async function mergeModulated() {
+  if (labeledModulatedBuffers.length < 2) {
+    return;
+  }
+
+  var firstBuffer = labeledModulatedBuffers[0].buffer;
+  var { error, values } = await ep(getNewContext, {
+    sampleRate: firstBuffer.sampleRate,
+    length: firstBuffer.length,
+    numberOfChannels: firstBuffer.numberOfChannels,
+  });
+  if (error) {
+    handleError(error);
+    return;
+  }
+
+  var mCtx = values[0];
+  var srcNodes = labeledModulatedBuffers.map(
+    (lb) => new AudioBufferSourceNode(mCtx, { buffer: lb.buffer })
+  );
+  srcNodes.forEach((node) => node.connect(mCtx.destination));
+
+  mCtx.startRendering().then(onRecordingEnd).catch(handleError);
+  srcNodes.forEach((node) => node.start());
+
+  function onRecordingEnd(renderedBuffer) {
+    renderAudio({
+      audioBuffer: renderedBuffer,
+      containerSelector: '.result-audio',
     });
   }
 }

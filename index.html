@@ -31,9 +31,16 @@
 
     <button id="channel-button" class="hidden">Get channel signals</button>
 
+    <label for="q-val">Bandpass Q</label>
+    <input id="q-val" type="number" value="5.0">
+
     <div class="bandpass-results">
     </div>
 
+    <label for="smoothing-factor-up">Smoothing factor, up</label>
+    <input id="smoothing-factor-up" type="number" value="0.3">
+    <label for="smoothing-factor-down">Smoothing factor, down</label>
+    <input id="smoothing-factor-down" type="number" value="0.995">
     <button id="envelope-button" class="hidden">Get envelope followers for bands</button>
     <div class="envelopes">
     </div>
@@ -41,9 +48,15 @@
     <button id="carrier-channel-button" class="">Get channel signals for carrier</button>
     <div class="carrier-bandpass-results"></div>
 
+    <label for="carrier-level">Carrier level</label>
+    <input id="carrier-level" type="number" value="0.01">
+    <label for="info-level">Info level</label>
+    <input id="info-level" type="number" value="10000.0">
     <button id="modulate-button" class="hidden">Modulate</button>
     <div class="modulated-carrier-bandpasses">
     </div>
+
+    <button id="merge-button" class="hidden">Merge modulated signals</button>
 
     <div class="result-audio hidden">
       <audio class="result-audio-player" controls></audio>

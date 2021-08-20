@@ -35,7 +35,7 @@
     "await-to-js": "^3.0.0",
     "d3-queue": "^3.0.7",
     "d3-selection": "^3.0.0",
-    "envelope-follower": "^1.0.7",
+    "envelope-follower": "^1.0.8",
     "errorback-promise": "^1.0.0",
     "handle-error-web": "^1.0.1",
     "lodash.curry": "^4.1.1",
