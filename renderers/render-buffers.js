@@ -27,5 +27,6 @@ export function renderBuffers({ labeledBuffers, containerSelector }) {
 }
 
 function classForLB(lb) {
-  return `labeled-audio-${lb.label.replace(/\./g, '_')}`;
+  const labelString = '' + lb.label;
+  return `labeled-audio-${labelString.replace(/\./g, '_')}`;
 }

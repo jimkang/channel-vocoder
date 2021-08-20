@@ -8,11 +8,13 @@ import { decodeArrayBuffer } from './tasks/decode-array-buffer';
 import { queue } from 'd3-queue';
 import { renderBuffers } from './renderers/render-buffers';
 import { to } from 'await-to-js';
+import curry from 'lodash.curry';
 
 var carrierBuffer;
 var infoBuffer;
-var bandpassBuffersForFreqs = {};
+var labeledInfoBandpassBuffers = [];
 var labeledEnvelopes = [];
+var labeledCarrierBandpassBuffers = [];
 
 // https://patentimages.storage.googleapis.com/29/15/cf/13438f97b5d58c/US2121142.pdf
 var bandpassCenters = [
@@ -29,9 +31,14 @@ var bandpassCenters = [
 ];
 
 var channelButton = document.getElementById('channel-button');
-channelButton.addEventListener('click', getChannelSignals);
 var envelopeButton = document.getElementById('envelope-button');
+var carrierChannelButton = document.getElementById('carrier-channel-button');
+var modulateButton = document.getElementById('modulate-button');
+
+channelButton.addEventListener('click', getChannelSignals);
 envelopeButton.addEventListener('click', getEnvelopes);
+carrierChannelButton.addEventListener('click', getCarrierChannelSignals);
+modulateButton.addEventListener('click', modulateCarrierBandpasses);
 
 var { getNewContext } = ContextKeeper({ offline: true });
 
@@ -70,32 +77,42 @@ var { getNewContext } = ContextKeeper({ offline: true });
     });
 
     channelButton.classList.remove('hidden');
-
-    //var combinedBuffer =
-    //channel -
-    //vcdrBuffers({
-    //ctx,
-    //audioBuffers,
-    //preserveTempo,
-    //samplesPerChunk: +samplesPerChunk,
-    //});
-    //console.log('Combined buffer', combinedBuffer);
-    //
-    //renderResultAudio({ audioBuffer: combinedBuffer,
-    //containerSelector: '.result-audio',
-    //});
   }
 })();
 
 function getChannelSignals() {
-  bandpassCenters.forEach(runBandpass);
+  bandpassCenters.forEach(
+    curry(runBandpass)(
+      infoBuffer,
+      labeledInfoBandpassBuffers,
+      '.bandpass-results',
+      () => envelopeButton.classList.remove('hidden')
+    )
+  );
 }
 
-async function runBandpass(frequency) {
+function getCarrierChannelSignals() {
+  bandpassCenters.forEach(
+    curry(runBandpass)(
+      carrierBuffer,
+      labeledCarrierBandpassBuffers,
+      '.carrier-bandpass-results',
+      () => modulateButton.classList.remove('hidden')
+    )
+  );
+}
+
+async function runBandpass(
+  inBuffer,
+  labeledBuffers,
+  containerSelector,
+  postRunFn,
+  frequency
+) {
   var { error, values } = await ep(getNewContext, {
-    sampleRate: infoBuffer.sampleRate,
-    length: infoBuffer.length,
-    numberOfChannels: infoBuffer.numberOfChannels,
+    sampleRate: inBuffer.sampleRate,
+    length: inBuffer.length,
+    numberOfChannels: inBuffer.numberOfChannels,
   });
   if (error) {
     handleError(error);
@@ -103,8 +120,8 @@ async function runBandpass(frequency) {
   }
   var bpCtx = values[0];
 
-  var infoBufferNode = bpCtx.createBufferSource();
-  infoBufferNode.buffer = infoBuffer;
+  var inBufferNode = bpCtx.createBufferSource();
+  inBufferNode.buffer = inBuffer;
 
   var bpNode = new BiquadFilterNode(bpCtx, {
     type: 'bandpass',
@@ -112,30 +129,27 @@ async function runBandpass(frequency) {
     frequency,
   });
 
-  infoBufferNode.connect(bpNode);
+  inBufferNode.connect(bpNode);
   bpNode.connect(bpCtx.destination);
 
   bpCtx.startRendering().then(onRecordingEnd).catch(handleError);
-  infoBufferNode.start();
+  inBufferNode.start();
 
   function onRecordingEnd(renderedBuffer) {
-    bandpassBuffersForFreqs[frequency] = renderedBuffer;
-
-    var labeledBuffers = getLabeledBuffers();
+    labeledBuffers.push({ label: frequency, buffer: renderedBuffer });
     renderBuffers({
       labeledBuffers,
-      containerSelector: '.bandpass-results',
+      containerSelector,
     });
 
-    if (labeledBuffers.length > 9) {
-      envelopeButton.classList.remove('hidden');
+    if (labeledBuffers.length > bandpassCenters.length - 1) {
+      postRunFn();
     }
   }
 }
 
 function getEnvelopes() {
-  var labeledBuffers = getLabeledBuffers();
-  labeledBuffers.forEach(runEnvelope);
+  labeledInfoBandpassBuffers.forEach(runEnvelope);
 }
 
 async function runEnvelope({ label, buffer }) {
@@ -185,18 +199,7 @@ async function runEnvelope({ label, buffer }) {
   }
 }
 
-function getLabeledBuffers() {
-  var labeledBuffers = [];
-
-  for (var freq in bandpassBuffersForFreqs) {
-    labeledBuffers.push({
-      label: freq,
-      buffer: bandpassBuffersForFreqs[freq],
-    });
-  }
-
-  return labeledBuffers;
-}
+function modulateCarrierBandpasses() {}
 
 function reportTopLevelError(msg, url, lineNo, columnNo, error) {
   handleError(error);
