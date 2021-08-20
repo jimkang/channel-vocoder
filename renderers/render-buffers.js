@@ -21,7 +21,7 @@ export function renderBuffers({ labeledBuffers, containerSelector }) {
   existingBoxes.each((lb) =>
     renderAudio({
       audioBuffer: lb.buffer,
-      containerSelector: '.' + classForLB(lb),
+      containerSelector: `${containerSelector} .${classForLB(lb)}`,
     })
   );
 }

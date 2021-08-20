@@ -1,4 +1,3 @@
-import RouteState from 'route-state';
 import handleError from 'handle-error-web';
 import { version } from './package.json';
 import ep from 'errorback-promise';
@@ -8,11 +7,12 @@ import ContextKeeper from 'audio-context-singleton';
 import { decodeArrayBuffer } from './tasks/decode-array-buffer';
 import { queue } from 'd3-queue';
 import { renderBuffers } from './renderers/render-buffers';
+import { to } from 'await-to-js';
 
-var routeState;
 var carrierBuffer;
 var infoBuffer;
 var bandpassBuffersForFreqs = {};
+var labeledEnvelopes = [];
 
 // https://patentimages.storage.googleapis.com/29/15/cf/13438f97b5d58c/US2121142.pdf
 var bandpassCenters = [
@@ -30,6 +30,8 @@ var bandpassCenters = [
 
 var channelButton = document.getElementById('channel-button');
 channelButton.addEventListener('click', getChannelSignals);
+var envelopeButton = document.getElementById('envelope-button');
+envelopeButton.addEventListener('click', getEnvelopes);
 
 var { getNewContext } = ContextKeeper({ offline: true });
 
@@ -37,14 +39,6 @@ var { getNewContext } = ContextKeeper({ offline: true });
   window.onerror = reportTopLevelError;
   renderVersion();
 
-  routeState = RouteState({
-    followRoute,
-    windowObject: window,
-  });
-  routeState.routeFromHash();
-})();
-
-async function followRoute() {
   renderSources({ onBuffers });
 
   async function onBuffers(buffers) {
@@ -91,7 +85,7 @@ async function followRoute() {
     //containerSelector: '.result-audio',
     //});
   }
-}
+})();
 
 function getChannelSignals() {
   bandpassCenters.forEach(runBandpass);
@@ -126,20 +120,82 @@ async function runBandpass(frequency) {
 
   function onRecordingEnd(renderedBuffer) {
     bandpassBuffersForFreqs[frequency] = renderedBuffer;
-    var labeledBuffers = [];
 
-    for (var freq in bandpassBuffersForFreqs) {
-      labeledBuffers.push({
-        label: freq,
-        buffer: bandpassBuffersForFreqs[freq],
-      });
-    }
-
+    var labeledBuffers = getLabeledBuffers();
     renderBuffers({
       labeledBuffers,
       containerSelector: '.bandpass-results',
     });
+
+    if (labeledBuffers.length > 9) {
+      envelopeButton.classList.remove('hidden');
+    }
   }
+}
+
+function getEnvelopes() {
+  var labeledBuffers = getLabeledBuffers();
+  labeledBuffers.forEach(runEnvelope);
+}
+
+async function runEnvelope({ label, buffer }) {
+  // TODO: Factor this out.
+  var { error, values } = await ep(getNewContext, {
+    sampleRate: buffer.sampleRate,
+    length: buffer.length,
+    numberOfChannels: buffer.numberOfChannels,
+  });
+  if (error) {
+    handleError(error);
+    return;
+  }
+
+  labeledEnvelopes.length = 0;
+
+  var efCtx = values[0];
+  var bufferNode = efCtx.createBufferSource();
+  bufferNode.buffer = buffer;
+
+  var [efError] = await to(
+    efCtx.audioWorklet.addModule('modules/envelope-follower.js')
+  );
+  if (efError) {
+    handleError(efError);
+    return;
+  }
+
+  var efNode = new AudioWorkletNode(
+    efCtx,
+    'envelope-follower-processor',
+    { processorOptions: { smoothingFactor: 0.8 } } // +smoothingField.value } }
+  );
+  bufferNode.connect(efNode);
+  efNode.connect(efCtx.destination);
+
+  efCtx.startRendering().then(onRecordingEnd).catch(handleError);
+  bufferNode.start();
+
+  function onRecordingEnd(renderedBuffer) {
+    labeledEnvelopes.push({ label, buffer: renderedBuffer });
+
+    renderBuffers({
+      labeledBuffers: labeledEnvelopes,
+      containerSelector: '.envelopes',
+    });
+  }
+}
+
+function getLabeledBuffers() {
+  var labeledBuffers = [];
+
+  for (var freq in bandpassBuffersForFreqs) {
+    labeledBuffers.push({
+      label: freq,
+      buffer: bandpassBuffersForFreqs[freq],
+    });
+  }
+
+  return labeledBuffers;
 }
 
 function reportTopLevelError(msg, url, lineNo, columnNo, error) {
