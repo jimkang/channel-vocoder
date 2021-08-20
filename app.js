@@ -15,6 +15,7 @@ var infoBuffer;
 var labeledInfoBandpassBuffers = [];
 var labeledEnvelopes = [];
 var labeledCarrierBandpassBuffers = [];
+var labeledModulatedBuffers = [];
 
 // https://patentimages.storage.googleapis.com/29/15/cf/13438f97b5d58c/US2121142.pdf
 var bandpassCenters = [
@@ -199,7 +200,65 @@ async function runEnvelope({ label, buffer }) {
   }
 }
 
-function modulateCarrierBandpasses() {}
+function modulateCarrierBandpasses() {
+  labeledCarrierBandpassBuffers.forEach(runMultiply);
+}
+
+async function runMultiply({ label, buffer }) {
+  var baseBuffer = buffer;
+  var { error, values } = await ep(getNewContext, {
+    sampleRate: baseBuffer.sampleRate,
+    length: baseBuffer.length,
+    numberOfChannels: baseBuffer.numberOfChannels,
+  });
+  if (error) {
+    handleError(error);
+    return;
+  }
+
+  labeledModulatedBuffers.length = 0;
+
+  var mCtx = values[0];
+  var bufferNode = mCtx.createBufferSource();
+  bufferNode.buffer = baseBuffer;
+
+  var labeledEnvelope = labeledEnvelopes.find(
+    (labeledEnv) => labeledEnv.label === label
+  );
+  if (!labeledEnvelope) {
+    throw new Error(`Could not find envelope for ${label}`);
+  }
+
+  var envelopeNode = mCtx.createBufferSource();
+  envelopeNode.buffer = labeledEnvelope.buffer;
+
+  var [mError] = await to(
+    mCtx.audioWorklet.addModule('modules/multiply-signals.js')
+  );
+  if (mError) {
+    handleError(mError);
+    return;
+  }
+
+  var mNode = new GainNode(mCtx);
+
+  bufferNode.connect(mNode);
+  envelopeNode.connect(mNode.gain);
+  mNode.connect(mCtx.destination);
+
+  mCtx.startRendering().then(onRecordingEnd).catch(handleError);
+  bufferNode.start();
+  envelopeNode.start();
+
+  function onRecordingEnd(renderedBuffer) {
+    labeledModulatedBuffers.push({ label, buffer: renderedBuffer });
+
+    renderBuffers({
+      labeledBuffers: labeledModulatedBuffers,
+      containerSelector: '.modulated-carrier-bandpasses',
+    });
+  }
+}
 
 function reportTopLevelError(msg, url, lineNo, columnNo, error) {
   handleError(error);
