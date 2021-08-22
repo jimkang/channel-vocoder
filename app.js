@@ -8,7 +8,7 @@ import { decodeArrayBuffer } from './tasks/decode-array-buffer';
 import { queue } from 'd3-queue';
 import { renderBuffers } from './renderers/render-buffers';
 import { to } from 'await-to-js';
-import curry from 'lodash.curry';
+import { Bandpass } from './updaters/bandpass';
 
 var debug = true;
 
@@ -93,70 +93,28 @@ var { getNewContext } = ContextKeeper({ offline: true });
 
 function getChannelSignals() {
   bandpassCenters.forEach(
-    curry(runBandpass)(
-      infoBuffer,
-      labeledInfoBandpassBuffers,
-      '.bandpass-results',
-      () => envelopeButton.classList.remove('hidden')
-    )
+    Bandpass({
+      Q: +qInput.value,
+      bandpassCenters,
+      inBuffer: infoBuffer,
+      labeledBuffers: labeledInfoBandpassBuffers,
+      containerSelector: '.bandpass-results',
+      postRunFn: () => envelopeButton.classList.remove('hidden'),
+    })
   );
 }
 
 function getCarrierChannelSignals() {
   bandpassCenters.forEach(
-    curry(runBandpass)(
-      carrierBuffer,
-      labeledCarrierBandpassBuffers,
-      '.carrier-bandpass-results',
-      () => modulateButton.classList.remove('hidden')
-    )
+    Bandpass({
+      Q: +qInput.value,
+      bandpassCenters,
+      inBuffer: carrierBuffer,
+      labeledBuffers: labeledCarrierBandpassBuffers,
+      containerSelector: '.carrier-bandpass-results',
+      postRunFn: () => modulateButton.classList.remove('hidden'),
+    })
   );
-}
-
-async function runBandpass(
-  inBuffer,
-  labeledBuffers,
-  containerSelector,
-  postRunFn,
-  frequency
-) {
-  var { error, values } = await ep(getNewContext, {
-    sampleRate: inBuffer.sampleRate,
-    length: inBuffer.length,
-    numberOfChannels: inBuffer.numberOfChannels,
-  });
-  if (error) {
-    handleError(error);
-    return;
-  }
-  var bpCtx = values[0];
-
-  var inBufferNode = bpCtx.createBufferSource();
-  inBufferNode.buffer = inBuffer;
-
-  var bpNode = new BiquadFilterNode(bpCtx, {
-    type: 'bandpass',
-    Q: +qInput.value,
-    frequency,
-  });
-
-  inBufferNode.connect(bpNode);
-  bpNode.connect(bpCtx.destination);
-
-  bpCtx.startRendering().then(onRecordingEnd).catch(handleError);
-  inBufferNode.start();
-
-  function onRecordingEnd(renderedBuffer) {
-    labeledBuffers.push({ label: frequency, buffer: renderedBuffer });
-    renderBuffers({
-      labeledBuffers,
-      containerSelector,
-    });
-
-    if (labeledBuffers.length > bandpassCenters.length - 1) {
-      postRunFn();
-    }
-  }
 }
 
 function getEnvelopes() {
