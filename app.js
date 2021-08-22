@@ -6,9 +6,9 @@ import { renderAudio } from 'render-audio';
 import ContextKeeper from 'audio-context-singleton';
 import { decodeArrayBuffer } from './tasks/decode-array-buffer';
 import { queue } from 'd3-queue';
-import { renderBuffers } from './renderers/render-buffers';
-import { to } from 'await-to-js';
 import { Bandpass } from './updaters/bandpass';
+import { GetEnvelope } from './updaters/get-envelope';
+import { ApplyEnvelope } from './updaters/apply-envelope';
 
 var debug = true;
 
@@ -118,117 +118,31 @@ function getCarrierChannelSignals() {
 }
 
 function getEnvelopes() {
-  labeledInfoBandpassBuffers.forEach(runEnvelope);
-}
-
-async function runEnvelope({ label, buffer }) {
-  // TODO: Factor this out.
-  var { error, values } = await ep(getNewContext, {
-    sampleRate: buffer.sampleRate,
-    length: buffer.length,
-    numberOfChannels: buffer.numberOfChannels,
-  });
-  if (error) {
-    handleError(error);
-    return;
-  }
-
   labeledEnvelopes.length = 0;
-
-  var efCtx = values[0];
-  var bufferNode = efCtx.createBufferSource();
-  bufferNode.buffer = buffer;
-
-  var [efError] = await to(
-    efCtx.audioWorklet.addModule('modules/envelope-follower.js')
-  );
-  if (efError) {
-    handleError(efError);
-    return;
-  }
-
-  var efNode = new AudioWorkletNode(efCtx, 'envelope-follower-processor', {
-    processorOptions: {
+  labeledInfoBandpassBuffers.forEach(
+    GetEnvelope({
+      labeledEnvelopes,
       smoothingFactorUp: +smoothingUpInput.value,
       smoothingFactorDown: +smoothingDownInput.value,
-    },
-  });
-  bufferNode.connect(efNode);
-  efNode.connect(efCtx.destination);
-
-  efCtx.startRendering().then(onRecordingEnd).catch(handleError);
-  bufferNode.start();
-
-  function onRecordingEnd(renderedBuffer) {
-    labeledEnvelopes.push({ label, buffer: renderedBuffer });
-
-    renderBuffers({
-      labeledBuffers: labeledEnvelopes,
-      containerSelector: '.envelopes',
-    });
-  }
+    })
+  );
 }
 
 function modulateCarrierBandpasses() {
-  labeledCarrierBandpassBuffers.forEach(runMultiply);
-}
-
-async function runMultiply({ label, buffer }) {
-  var baseBuffer = buffer;
-  var { error, values } = await ep(getNewContext, {
-    sampleRate: baseBuffer.sampleRate,
-    length: baseBuffer.length,
-    numberOfChannels: baseBuffer.numberOfChannels,
-  });
-  if (error) {
-    handleError(error);
-    return;
-  }
-
   labeledModulatedBuffers.length = 0;
-
-  var mCtx = values[0];
-  var bufferNode = mCtx.createBufferSource();
-  bufferNode.buffer = baseBuffer;
-
-  var labeledEnvelope = labeledEnvelopes.find(
-    (labeledEnv) => labeledEnv.label === label
-  );
-  if (!labeledEnvelope) {
-    throw new Error(`Could not find envelope for ${label}`);
-  }
-
-  var envelopeNode = mCtx.createBufferSource();
-  envelopeNode.buffer = labeledEnvelope.buffer;
-
-  var mNode = new GainNode(mCtx);
-  var carrierAmpNode = new GainNode(mCtx);
-  carrierAmpNode.gain.value = +carrierLevelInput.value;
-  var infoAmpNode = new GainNode(mCtx);
-  // Why??
-  infoAmpNode.gain.value = -1.0 * +infoLevelInput.value;
-
-  bufferNode.connect(carrierAmpNode);
-  carrierAmpNode.connect(mNode);
-  envelopeNode.connect(infoAmpNode);
-  infoAmpNode.connect(mNode.gain);
-  mNode.connect(mCtx.destination);
-
-  mCtx.startRendering().then(onRecordingEnd).catch(handleError);
-  bufferNode.start();
-  envelopeNode.start();
-
-  function onRecordingEnd(renderedBuffer) {
-    labeledModulatedBuffers.push({ label, buffer: renderedBuffer });
-
-    renderBuffers({
-      labeledBuffers: labeledModulatedBuffers,
-      containerSelector: '.modulated-carrier-bandpasses',
-    });
-    mergeButton.classList.remove('hidden');
-
-    debug ? mergeButton.click() : null;
-  }
+  var applyEnvelope = ApplyEnvelope({
+    labeledModulatedBuffers,
+    labeledEnvelopes,
+    carrierLevel: +carrierLevelInput.value,
+    infoLevel: +infoLevelInput.value,
+    postRunFn() {
+      if (labeledModulatedBuffers.length > bandpassCenters.length - 1) {
+        mergeButton.classList.remove('hidden');
+        debug ? mergeButton.click() : null;
+      }
+    },
+  });
+  labeledCarrierBandpassBuffers.forEach(applyEnvelope);
 }
 
 async function mergeModulated() {
