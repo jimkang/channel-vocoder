@@ -2,6 +2,7 @@ import ep from 'errorback-promise';
 import handleError from 'handle-error-web';
 import ContextKeeper from 'audio-context-singleton';
 import { renderBuffers } from '../renderers/render-buffers';
+import { connectBandpass } from '../audio-graph/connect-bandpass';
 
 var { getNewContext } = ContextKeeper({ offline: true });
 export function Bandpass({
@@ -29,13 +30,13 @@ export function Bandpass({
     var inBufferNode = bpCtx.createBufferSource();
     inBufferNode.buffer = inBuffer;
 
-    var bpNode = new BiquadFilterNode(bpCtx, {
-      type: 'bandpass',
+    var bpNode = connectBandpass({
+      ctx: bpCtx,
       Q,
       frequency,
+      inNode: inBufferNode,
     });
 
-    inBufferNode.connect(bpNode);
     bpNode.connect(bpCtx.destination);
 
     bpCtx.startRendering().then(onRecordingEnd).catch(handleError);

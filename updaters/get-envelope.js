@@ -2,8 +2,9 @@ import ep from 'errorback-promise';
 import handleError from 'handle-error-web';
 import ContextKeeper from 'audio-context-singleton';
 import { renderBuffers } from '../renderers/render-buffers';
+import { connectEnvelopeGet } from '../audio-graph/connect-envelope-get';
+
 var { getNewContext } = ContextKeeper({ offline: true });
-import { to } from 'await-to-js';
 
 export function GetEnvelope({
   smoothingFactorUp,
@@ -28,21 +29,17 @@ export function GetEnvelope({
     var bufferNode = efCtx.createBufferSource();
     bufferNode.buffer = buffer;
 
-    var [efError] = await to(
-      efCtx.audioWorklet.addModule('modules/envelope-follower.js')
-    );
-    if (efError) {
-      handleError(efError);
+    var efNode = await connectEnvelopeGet({
+      ctx: efCtx,
+      inNode: bufferNode,
+      smoothingFactorUp,
+      smoothingFactorDown,
+      onError: handleError,
+    });
+    if (!efNode) {
       return;
     }
 
-    var efNode = new AudioWorkletNode(efCtx, 'envelope-follower-processor', {
-      processorOptions: {
-        smoothingFactorUp,
-        smoothingFactorDown,
-      },
-    });
-    bufferNode.connect(efNode);
     efNode.connect(efCtx.destination);
 
     efCtx.startRendering().then(onRecordingEnd).catch(handleError);

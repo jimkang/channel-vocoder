@@ -2,6 +2,8 @@ import ep from 'errorback-promise';
 import handleError from 'handle-error-web';
 import ContextKeeper from 'audio-context-singleton';
 import { renderBuffers } from '../renderers/render-buffers';
+import { connectEnvelopeApply } from '../audio-graph/connect-envelope-apply';
+
 var { getNewContext } = ContextKeeper({ offline: true });
 
 export function ApplyEnvelope({
@@ -39,17 +41,13 @@ export function ApplyEnvelope({
     var envelopeNode = mCtx.createBufferSource();
     envelopeNode.buffer = labeledEnvelope.buffer;
 
-    var mNode = new GainNode(mCtx);
-    var carrierAmpNode = new GainNode(mCtx);
-    carrierAmpNode.gain.value = carrierLevel;
-    var infoAmpNode = new GainNode(mCtx);
-    // Why??
-    infoAmpNode.gain.value = -1.0 * infoLevel;
-
-    bufferNode.connect(carrierAmpNode);
-    carrierAmpNode.connect(mNode);
-    envelopeNode.connect(infoAmpNode);
-    infoAmpNode.connect(mNode.gain);
+    var mNode = connectEnvelopeApply({
+      ctx: mCtx,
+      inCarrierNode: bufferNode,
+      inEnvelopeNode: envelopeNode,
+      carrierLevel,
+      envLevel: infoLevel,
+    });
     mNode.connect(mCtx.destination);
 
     mCtx.startRendering().then(onRecordingEnd).catch(handleError);

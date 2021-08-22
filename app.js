@@ -9,9 +9,10 @@ import { queue } from 'd3-queue';
 import { Bandpass } from './updaters/bandpass';
 import { GetEnvelope } from './updaters/get-envelope';
 import { ApplyEnvelope } from './updaters/apply-envelope';
+import RouteState from 'route-state';
 
 var debug = true;
-
+var routeState;
 var carrierBuffer;
 var infoBuffer;
 var labeledInfoBandpassBuffers = [];
@@ -55,7 +56,15 @@ var { getNewContext } = ContextKeeper({ offline: true });
 (async function go() {
   window.onerror = reportTopLevelError;
   renderVersion();
+  routeState = RouteState({
+    followRoute,
+    windowObject: window,
+    propsToCoerceToBool: ['nonstop'],
+  });
+  routeState.routeFromHash();
+})();
 
+async function followRoute({ nonstop }) {
   renderSources({ onBuffers });
 
   async function onBuffers(buffers) {
@@ -89,32 +98,31 @@ var { getNewContext } = ContextKeeper({ offline: true });
     channelButton.classList.remove('hidden');
     debug ? channelButton.click() : null;
   }
-})();
+}
 
 function getChannelSignals() {
-  bandpassCenters.forEach(
-    Bandpass({
-      Q: +qInput.value,
-      bandpassCenters,
-      inBuffer: infoBuffer,
-      labeledBuffers: labeledInfoBandpassBuffers,
-      containerSelector: '.bandpass-results',
-      postRunFn: () => envelopeButton.classList.remove('hidden'),
-    })
-  );
+  var runInfoBandpass = Bandpass({
+    Q: +qInput.value,
+    bandpassCenters,
+    inBuffer: infoBuffer,
+    labeledBuffers: labeledInfoBandpassBuffers,
+    containerSelector: '.bandpass-results',
+    postRunFn: () => envelopeButton.classList.remove('hidden'),
+  });
+  bandpassCenters.forEach(runInfoBandpass);
 }
 
 function getCarrierChannelSignals() {
-  bandpassCenters.forEach(
-    Bandpass({
-      Q: +qInput.value,
-      bandpassCenters,
-      inBuffer: carrierBuffer,
-      labeledBuffers: labeledCarrierBandpassBuffers,
-      containerSelector: '.carrier-bandpass-results',
-      postRunFn: () => modulateButton.classList.remove('hidden'),
-    })
-  );
+  var runCarrierBandpass = Bandpass({
+    Q: +qInput.value,
+    bandpassCenters,
+    inBuffer: carrierBuffer,
+    labeledBuffers: labeledCarrierBandpassBuffers,
+    containerSelector: '.carrier-bandpass-results',
+    postRunFn: () => modulateButton.classList.remove('hidden'),
+  });
+
+  bandpassCenters.forEach(runCarrierBandpass);
 }
 
 function getEnvelopes() {
