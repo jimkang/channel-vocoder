@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
   </head>
-  <body>
+  <body class="center">
     <div id="status-message" class="hidden"></div>
 
     <h1 class="title">Channel Vocoder</h1>
@@ -21,71 +21,85 @@
     <div class="form">
       <span class="group">
         <input type="checkbox" id="mode-checkbox" />
-        <label for="mode-checkbox">Nonstop</label>
+        <label for="mode-checkbox">Mode: Nonstop</label>
       </span>
 
       <span class="group">
-        <label for="file1">Carrier audio</label>
+        <label for="file1">Carrier audio</label><br />
         <input
           id="file1"
           class="input-source"
           type="file"
           accept="audio/*, .m4a,.ogg,.mp3,.wav"
         />
+        <div class="file1-audio hidden audio-display">
+          <audio class="file1-audio-player" controls></audio>
+        </div>
       </span>
 
-      <div class="file1-audio hidden">
-        <audio class="file1-audio-player" controls></audio>
-      </div>
+      <span class="group">
+        <label for="file2">Information audio</label><br />
+        <input
+          id="file2"
+          class="input-source"
+          type="file"
+          accept="audio/*, .m4a,.ogg,.mp3,.wav"
+        />
+        <div class="file2-audio hidden audio-display">
+          <audio class="file2-audio-player" controls></audio>
+        </div>
+      </span>
 
-      <label for="file2">Information audio</label>
-      <input
-        id="file2"
-        class="input-source"
-        type="file"
-        accept="audio/*, .m4a,.ogg,.mp3,.wav"
-      />
-      <div class="file2-audio hidden">
-        <audio class="file2-audio-player" controls></audio>
-      </div>
+      <span class="group">
+        <button id="channel-button" class="hidden">Get channel signals</button>
+      </span>
 
-      <div class="blend-controls"></div>
+      <span class="group">
+        <label for="q-val">Bandpass Q</label>
+        <input id="q-val" type="number" value="5.0" />
 
-      <button id="channel-button" class="hidden">Get channel signals</button>
+        <div class="bandpass-results"></div>
+      </span>
 
-      <label for="q-val">Bandpass Q</label>
-      <input id="q-val" type="number" value="5.0" />
+      <span class="group">
+        <label for="smoothing-factor-up">Smoothing factor, up</label><br>
+        <input id="smoothing-factor-up" type="number" value="0.3" /><br>
+        <label for="smoothing-factor-down">Smoothing factor, down</label><br>
+        <input id="smoothing-factor-down" type="number" value="0.995" /><br>
+        <button id="envelope-button" class="hidden">
+          Get envelope followers for bands
+        </button>
+        <div class="envelopes"></div>
+      </span>
 
-      <div class="bandpass-results"></div>
+      <span class="group">
+        <button id="carrier-channel-button" class="hidden">
+          Get channel signals for carrier
+        </button>
+        <div class="carrier-bandpass-results"></div>
 
-      <label for="smoothing-factor-up">Smoothing factor, up</label>
-      <input id="smoothing-factor-up" type="number" value="0.3" />
-      <label for="smoothing-factor-down">Smoothing factor, down</label>
-      <input id="smoothing-factor-down" type="number" value="0.995" />
-      <button id="envelope-button" class="hidden">
-        Get envelope followers for bands
-      </button>
-      <div class="envelopes"></div>
+        <label for="carrier-level">Carrier level</label><br>
+        <input id="carrier-level" type="number" value="0.01" /><br>
+        <label for="info-level">Info level</label><br>
+        <input id="info-level" type="number" value="10000.0" />
+      </span>
 
-      <button id="carrier-channel-button" class="hidden">
-        Get channel signals for carrier
-      </button>
-      <div class="carrier-bandpass-results"></div>
+      <span class="group">
+        <button id="modulate-button" class="hidden">Modulate</button>
+        <div class="modulated-carrier-bandpasses"></div>
+      </span>
 
-      <label for="carrier-level">Carrier level</label>
-      <input id="carrier-level" type="number" value="0.01" />
-      <label for="info-level">Info level</label>
-      <input id="info-level" type="number" value="10000.0" />
-      <button id="modulate-button" class="hidden">Modulate</button>
-      <div class="modulated-carrier-bandpasses"></div>
+      <span class="group">
+        <button id="merge-button" class="hidden">
+          Merge modulated signals
+        </button>
 
-      <button id="merge-button" class="hidden">Merge modulated signals</button>
+        <button id="vocode-button" class="hidden">Vocode</button>
 
-      <button id="vocode-button" class="hidden">Vocode</button>
-
-      <div class="result-audio hidden">
-        <audio class="result-audio-player" controls></audio>
-      </div>
+        <div class="result-audio audio-display hidden">
+          <audio class="result-audio-player" controls></audio>
+        </div>
+      </span>
     </div>
 
     <div id="version-info"></div>

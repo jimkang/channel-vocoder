@@ -7,10 +7,13 @@ body {
   margin-bottom: 2rem;
   margin-left: auto;
   margin-right: auto;
+  max-width: 30rem;
+}
+
+.center {
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-width: 30rem;
 }
 
 .invisible {
@@ -68,9 +71,6 @@ a:visited {
 }
 
 .result {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 canvas {
@@ -79,11 +79,28 @@ canvas {
 
 .form {
   margin-top: 2rem;
+  display: flex;
+  flex-direction: column;
 }
 
 .group {
-  border: solid 1px #666;
+  margin-bottom: 1rem;
+  padding: 0.25rem;
 }
+
+label {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.audio-display {
+  margin-top: 1rem;
+}
+
+.audio-display audio {
+  width: 100%;
+}
+
 
 @media all and (max-height: 568px) {
   body {
