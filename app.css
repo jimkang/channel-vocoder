@@ -90,7 +90,7 @@ canvas {
 
 label {
   font-weight: bold;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .audio-display {
@@ -101,6 +101,10 @@ label {
   width: 100%;
 }
 
+.expl {
+  font-style: italic;
+  font-size: 0.7em;
+}
 
 @media all and (max-height: 568px) {
   body {
