@@ -3,8 +3,14 @@ body {
   font-family: Helvetica, sans-serif;
   background: #fff;
   color: #333;
-  margin: 0;
+  margin-top: 0;
   margin-bottom: 2rem;
+  margin-left: auto;
+  margin-right: auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 30rem;
 }
 
 .invisible {
@@ -44,7 +50,7 @@ a:link {
 }
 
 a:visited {
-  color: #ddd;
+  color: #666;
 }
 
 #version-info {
@@ -61,42 +67,22 @@ a:visited {
   display: none;
 }
 
-.generation svg {
-  width: 640;
-  height: 320;
-  border: solid 1px #222;
+.result {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
-.generation text {
-  fill: #444;
-  font-size: 2.5;
-  text-anchor: middle;
+canvas {
+  border: solid 1px #555;
 }
 
-.generation circle {
+.form {
+  margin-top: 2rem;
 }
 
-.generation span {
-  margin-right: 0.5em;
-}
-
-.substrates circle {
-  fill: #fff;
-}
-
-.substrates {
-  border: 8px solid hsl(210, 50%, 50%);
-  font-weight: bold;
-}
-
-.enzymes circle {
-  stroke: #444;
-  stroke-width: 0.1;
-  fill: hsla(0, 0%, 0%, 0.05);
-}
-
-.enzymes text {
-  font-style: italic;
+.group {
+  border: solid 1px #666;
 }
 
 @media all and (max-height: 568px) {

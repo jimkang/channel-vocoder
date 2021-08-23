@@ -21,3 +21,7 @@ sync:
 
 set-up-server-dir:
 	ssh $(USER)@$(SERVER) "mkdir -p $(APPDIR)"
+
+
+prettier:
+	prettier index.html --write
