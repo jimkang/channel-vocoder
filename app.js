@@ -10,6 +10,8 @@ import { Bandpass } from './updaters/bandpass';
 import { GetEnvelope } from './updaters/get-envelope';
 import { ApplyEnvelope } from './updaters/apply-envelope';
 import RouteState from 'route-state';
+import { runVocodeChain } from './updaters/vocode-chain';
+import { connectBufferMergerToDest } from './audio-graph/connect-merger';
 
 var debug = true;
 var routeState;
@@ -44,12 +46,14 @@ var infoLevelInput = document.getElementById('info-level');
 var smoothingUpInput = document.getElementById('smoothing-factor-up');
 var smoothingDownInput = document.getElementById('smoothing-factor-down');
 var qInput = document.getElementById('q-val');
+var vocodeButton = document.getElementById('vocode-button');
 
 channelButton.addEventListener('click', getChannelSignals);
 envelopeButton.addEventListener('click', getEnvelopes);
 carrierChannelButton.addEventListener('click', getCarrierChannelSignals);
 modulateButton.addEventListener('click', modulateCarrierBandpasses);
 mergeButton.addEventListener('click', mergeModulated);
+vocodeButton.addEventListener('click', onVocodeClick);
 
 var { getNewContext } = ContextKeeper({ offline: true });
 
@@ -95,8 +99,13 @@ async function followRoute({ nonstop }) {
       containerSelector: '.file2-audio',
     });
 
-    channelButton.classList.remove('hidden');
-    debug ? channelButton.click() : null;
+    if (nonstop) {
+      vocodeButton.classList.remove('hidden');
+    } else {
+      channelButton.classList.remove('hidden');
+      carrierChannelButton.classList.remove('hidden');
+      debug ? channelButton.click() : null;
+    }
   }
 }
 
@@ -170,10 +179,10 @@ async function mergeModulated() {
   }
 
   var mCtx = values[0];
-  var srcNodes = labeledModulatedBuffers.map(
-    (lb) => new AudioBufferSourceNode(mCtx, { buffer: lb.buffer })
-  );
-  srcNodes.forEach((node) => node.connect(mCtx.destination));
+  var srcNodes = connectBufferMergerToDest({
+    ctx: mCtx,
+    inBuffers: labeledModulatedBuffers.map((lb) => lb.buffer),
+  });
 
   mCtx.startRendering().then(onRecordingEnd).catch(handleError);
   srcNodes.forEach((node) => node.start());
@@ -184,6 +193,19 @@ async function mergeModulated() {
       containerSelector: '.result-audio',
     });
   }
+}
+
+function onVocodeClick() {
+  runVocodeChain({
+    Q: +qInput.value,
+    smoothingFactorUp: +smoothingUpInput.value,
+    smoothingFactorDown: +smoothingDownInput.value,
+    bandpassCenters,
+    carrierBuffer,
+    infoBuffer,
+    carrierLevel: +carrierLevelInput.value,
+    infoLevel: +infoLevelInput.value,
+  });
 }
 
 function reportTopLevelError(msg, url, lineNo, columnNo, error) {

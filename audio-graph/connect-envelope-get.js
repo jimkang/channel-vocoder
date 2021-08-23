@@ -1,7 +1,5 @@
 import { to } from 'await-to-js';
 
-var envelopeFollowerModuleAdded = false;
-
 export async function connectEnvelopeGet({
   inNode,
   ctx,
@@ -9,16 +7,12 @@ export async function connectEnvelopeGet({
   smoothingFactorDown,
   onError,
 }) {
-  if (!envelopeFollowerModuleAdded) {
-    let [efError] = await to(
-      ctx.audioWorklet.addModule('modules/envelope-follower.js')
-    );
-    if (efError) {
-      onError(efError);
-      return;
-    }
-
-    envelopeFollowerModuleAdded = true;
+  let [efError] = await to(
+    ctx.audioWorklet.addModule('modules/envelope-follower.js')
+  );
+  if (efError) {
+    onError(efError);
+    return;
   }
 
   var efNode = new AudioWorkletNode(ctx, 'envelope-follower-processor', {
