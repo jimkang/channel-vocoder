@@ -3,7 +3,7 @@
 import createConfig from './rollup-tools/base-config';
 import { serve } from './rollup-tools/config-tools';
 
-var channelVcdrs = ['liner'];
+var channelVcdrs = [];
 
 // Inspired by https://github.com/Tom-Siegel/multi-page-svelte/blob/5dd47f9ffe3cbddbaa5e29be5056ce1ed56060b2/rollup-pages.config.js#L45
 var configs = [
@@ -17,11 +17,11 @@ var configs = [
 ]
   .concat(
     channelVcdrs.map((v) => ({
-      input: `channel-vcdrs/${v}/${v}-channel-vcdr.js`,
-      outputFile: `channel-vcdrs/${v}/${v}-channel-vcdr-bundle.js`,
-      reloadPath: `channel-vcdrs/${v}`,
+      input: `channel-vocoders/${v}/${v}-channel-vocoder.js`,
+      outputFile: `channel-vocoders/${v}/${v}-channel-vocoder-bundle.js`,
+      reloadPath: `channel-vocoders/${v}`,
       serve: process.env.APP === v && serve,
-      serveOpts: { rootDir: '.', serveDir: `channel-vcdrs/${v}`, port: 6001 },
+      serveOpts: { rootDir: '.', serveDir: `channel-vocoders/${v}`, port: 6001 },
     }))
   )
   .map(createConfig);

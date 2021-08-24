@@ -1,4 +1,4 @@
-# channel-vcdr
+# channel-vocoder
 
 A crude channel vocoder.
 
