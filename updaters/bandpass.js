@@ -7,6 +7,7 @@ import { connectBandpass } from '../audio-graph/connect-bandpass';
 var { getNewContext } = ContextKeeper({ offline: true });
 export function Bandpass({
   inBuffer,
+  inSrc,
   labeledBuffers,
   containerSelector,
   Q,
@@ -26,21 +27,29 @@ export function Bandpass({
       return;
     }
     var bpCtx = values[0];
+    var inNode;
 
-    var inBufferNode = bpCtx.createBufferSource();
-    inBufferNode.buffer = inBuffer;
+    if (inSrc) {
+      var audioEl = new Audio(inSrc);
+      inNode = new MediaElementAudioSourceNode(bpCtx, {
+        mediaElement: audioEl,
+      });
+    } else if (inBuffer) {
+      inNode = bpCtx.createBufferSource();
+      inNode.buffer = inBuffer;
+    }
 
     var bpNode = connectBandpass({
       ctx: bpCtx,
       Q,
       frequency,
-      inNode: inBufferNode,
+      inNode,
     });
 
     bpNode.connect(bpCtx.destination);
 
     bpCtx.startRendering().then(onRecordingEnd).catch(handleError);
-    inBufferNode.start();
+    inNode.start();
 
     function onRecordingEnd(renderedBuffer) {
       labeledBuffers.push({ label: frequency, buffer: renderedBuffer });

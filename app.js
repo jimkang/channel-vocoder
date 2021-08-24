@@ -17,6 +17,8 @@ import { connectBufferMergerToDest } from './audio-graph/connect-merger';
 
 var debug = false;
 var routeState;
+var theCarrierSrc;
+var theInfoSrc;
 var carrierBuffer;
 var infoBuffer;
 var labeledInfoBandpassBuffers = [];
@@ -77,7 +79,12 @@ async function followRoute({
   smoothingFactorDown = 0.995,
   carrierLevel = 0.01,
   infoLevel = 10000.0,
+  infoSrc,
+  carrierSrc,
 }) {
+  theInfoSrc = infoSrc;
+  theCarrierSrc = carrierSrc;
+
   renderSources({ onBuffers });
   renderModeControl({ nonstop, onModeChange });
   renderParamControls({
@@ -110,11 +117,11 @@ async function followRoute({
 
     renderAudio({
       audioBuffer: carrierBuffer,
-      containerSelector: '.file1-audio',
+      containerSelector: '.carrier-file-audio',
     });
     renderAudio({
       audioBuffer: infoBuffer,
-      containerSelector: '.file2-audio',
+      containerSelector: '.info-file-audio',
     });
   }
 }
@@ -124,6 +131,7 @@ function getChannelSignals() {
     Q: +qInput.value,
     bandpassCenters,
     inBuffer: infoBuffer,
+    inSrc: theInfoSrc,
     labeledBuffers: labeledInfoBandpassBuffers,
     containerSelector: '.bandpass-results',
     postRunFn: () => envelopeButton.classList.remove('hidden'),
@@ -136,6 +144,7 @@ function getCarrierChannelSignals() {
     Q: +qInput.value,
     bandpassCenters,
     inBuffer: carrierBuffer,
+    inSrc: theCarrierSrc,
     labeledBuffers: labeledCarrierBandpassBuffers,
     containerSelector: '.carrier-bandpass-results',
     postRunFn: () => modulateButton.classList.remove('hidden'),
@@ -213,6 +222,8 @@ function onVocodeClick() {
     bandpassCenters,
     carrierBuffer,
     infoBuffer,
+    carrierSrc: theCarrierSrc,
+    infoSrc: theInfoSrc,
     carrierLevel: +carrierLevelInput.value,
     infoLevel: +infoLevelInput.value,
   });

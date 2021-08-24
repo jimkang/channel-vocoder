@@ -16,6 +16,8 @@ export async function runVocodeChain({
   bandpassCenters,
   carrierBuffer,
   infoBuffer,
+  carrierSrc,
+  infoSrc,
   carrierLevel,
   infoLevel,
 }) {
@@ -31,16 +33,31 @@ export async function runVocodeChain({
 
   var ctx = values[0];
 
-  var carrierBufferNode = ctx.createBufferSource();
-  carrierBufferNode.buffer = carrierBuffer;
-  var infoBufferNode = ctx.createBufferSource();
-  infoBufferNode.buffer = infoBuffer;
+  var inCarrierNode;
+  var inInfoNode;
+
+  if (carrierSrc) {
+    inCarrierNode = new MediaElementAudioSourceNode(ctx, {
+      mediaElement: new Audio(carrierSrc),
+    });
+  } else {
+    inCarrierNode = ctx.createBufferSource();
+    inCarrierNode.buffer = carrierBuffer;
+  }
+  if (infoSrc) {
+    inInfoNode = new MediaElementAudioSourceNode(ctx, {
+      mediaElement: new Audio(infoSrc),
+    });
+  } else {
+    inInfoNode = ctx.createBufferSource();
+    inInfoNode.buffer = infoBuffer;
+  }
 
   var infoBPNodes = bandpassCenters.map((frequency) =>
-    connectBandpass({ ctx, Q, frequency, inNode: infoBufferNode })
+    connectBandpass({ ctx, Q, frequency, inNode: inInfoNode })
   );
   var carrierBPNodes = bandpassCenters.map((frequency) =>
-    connectBandpass({ ctx, Q, frequency, inNode: carrierBufferNode })
+    connectBandpass({ ctx, Q, frequency, inNode: inCarrierNode })
   );
 
   var [envGetError, envelopeGetNodes] = await to(
@@ -73,8 +90,8 @@ export async function runVocodeChain({
 
   modulatedNodes.forEach((node) => node.connect(ctx.destination));
   ctx.startRendering().then(onRecordingEnd).catch(handleError);
-  carrierBufferNode.start();
-  infoBufferNode.start();
+  inCarrierNode.start();
+  inInfoNode.start();
 
   function onRecordingEnd(renderedBuffer) {
     renderAudio({
