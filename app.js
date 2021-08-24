@@ -3,6 +3,7 @@ import { version } from './package.json';
 import ep from 'errorback-promise';
 import { renderSources } from './renderers/render-sources';
 import { renderModeControl } from './renderers/render-mode-control';
+import { renderParamControls } from './renderers/render-param-controls';
 import { renderAudio } from 'render-audio';
 import ContextKeeper from 'audio-context-singleton';
 import { decodeArrayBuffer } from './tasks/decode-array-buffer';
@@ -69,9 +70,24 @@ var { getNewContext } = ContextKeeper({ offline: true });
   routeState.routeFromHash();
 })();
 
-async function followRoute({ nonstop }) {
+async function followRoute({
+  nonstop,
+  Q = 5.0,
+  smoothingFactorUp = 0.3,
+  smoothingFactorDown = 0.995,
+  carrierLevel = 0.01,
+  infoLevel = 10000.0,
+}) {
   renderSources({ onBuffers });
   renderModeControl({ nonstop, onModeChange });
+  renderParamControls({
+    Q,
+    smoothingFactorUp,
+    smoothingFactorDown,
+    carrierLevel,
+    infoLevel,
+    routeState,
+  });
 
   async function onBuffers(buffers) {
     if (buffers.length < 2) {
