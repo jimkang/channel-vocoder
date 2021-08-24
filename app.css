@@ -88,6 +88,10 @@ canvas {
   padding: 0.25rem;
 }
 
+.group h3 {
+  margin-bottom: 0.5rem;
+}
+
 label {
   font-weight: bold;
   margin-bottom: 0.5rem;

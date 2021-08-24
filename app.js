@@ -2,6 +2,7 @@ import handleError from 'handle-error-web';
 import { version } from './package.json';
 import ep from 'errorback-promise';
 import { renderSources } from './renderers/render-sources';
+import { renderModeControl } from './renderers/render-mode-control';
 import { renderAudio } from 'render-audio';
 import ContextKeeper from 'audio-context-singleton';
 import { decodeArrayBuffer } from './tasks/decode-array-buffer';
@@ -13,7 +14,7 @@ import RouteState from 'route-state';
 import { runVocodeChain } from './updaters/vocode-chain';
 import { connectBufferMergerToDest } from './audio-graph/connect-merger';
 
-var debug = true;
+var debug = false;
 var routeState;
 var carrierBuffer;
 var infoBuffer;
@@ -70,6 +71,7 @@ var { getNewContext } = ContextKeeper({ offline: true });
 
 async function followRoute({ nonstop }) {
   renderSources({ onBuffers });
+  renderModeControl({ nonstop, onModeChange });
 
   async function onBuffers(buffers) {
     if (buffers.length < 2) {
@@ -98,14 +100,6 @@ async function followRoute({ nonstop }) {
       audioBuffer: infoBuffer,
       containerSelector: '.file2-audio',
     });
-
-    if (nonstop) {
-      vocodeButton.classList.remove('hidden');
-    } else {
-      channelButton.classList.remove('hidden');
-      carrierChannelButton.classList.remove('hidden');
-      debug ? channelButton.click() : null;
-    }
   }
 }
 
@@ -206,6 +200,10 @@ function onVocodeClick() {
     carrierLevel: +carrierLevelInput.value,
     infoLevel: +infoLevelInput.value,
   });
+}
+
+function onModeChange({ nonstop }) {
+  routeState.addToRoute({ nonstop });
 }
 
 function reportTopLevelError(msg, url, lineNo, columnNo, error) {
