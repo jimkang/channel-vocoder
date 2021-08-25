@@ -1,13 +1,12 @@
 import handleError from 'handle-error-web';
 import { version } from './package.json';
 import ep from 'errorback-promise';
-import { renderSources } from './renderers/render-sources';
+import { renderSource } from './renderers/render-source';
 import { renderModeControl } from './renderers/render-mode-control';
 import { renderParamControls } from './renderers/render-param-controls';
 import { renderAudio } from 'render-audio';
 import ContextKeeper from 'audio-context-singleton';
 import { decodeArrayBuffer } from './tasks/decode-array-buffer';
-import { queue } from 'd3-queue';
 import { Bandpass } from './updaters/bandpass';
 import { GetEnvelope } from './updaters/get-envelope';
 import { ApplyEnvelope } from './updaters/apply-envelope';
@@ -77,8 +76,19 @@ async function followRoute({
   smoothingFactorDown = 0.995,
   carrierLevel = 0.01,
   infoLevel = 10000.0,
+  infoSrc,
+  carrierSrc,
 }) {
-  renderSources({ onBuffers });
+  renderSource({
+    onBuffer: onCarrierBuffer,
+    src: carrierSrc,
+    inputSelector: '#carrier-file',
+  });
+  renderSource({
+    onBuffer: onInfoBuffer,
+    src: infoSrc,
+    inputSelector: '#info-file',
+  });
   renderModeControl({ nonstop, onModeChange });
   renderParamControls({
     Q,
@@ -88,33 +98,40 @@ async function followRoute({
     infoLevel,
     routeState,
   });
+}
 
-  async function onBuffers(buffers) {
-    if (buffers.length < 2) {
-      return;
-    }
+function onCarrierBuffer(buffer) {
+  decodeArrayBuffer(buffer, saveBuffer);
 
-    var q = queue();
-    buffers.forEach((buffer) => q.defer(decodeArrayBuffer, buffer));
-    q.awaitAll(useAudioBuffers);
-  }
-
-  function useAudioBuffers(error, audioBuffers) {
+  function saveBuffer(error, decoded) {
     if (error) {
       handleError(error);
       return;
     }
 
-    carrierBuffer = audioBuffers[0];
-    infoBuffer = audioBuffers[1];
+    carrierBuffer = decoded;
 
     renderAudio({
       audioBuffer: carrierBuffer,
-      containerSelector: '.file1-audio',
+      containerSelector: '.carrier-file-audio',
     });
+  }
+}
+
+function onInfoBuffer(buffer) {
+  decodeArrayBuffer(buffer, saveBuffer);
+
+  function saveBuffer(error, decoded) {
+    if (error) {
+      handleError(error);
+      return;
+    }
+
+    infoBuffer = decoded;
+
     renderAudio({
       audioBuffer: infoBuffer,
-      containerSelector: '.file2-audio',
+      containerSelector: '.info-file-audio',
     });
   }
 }

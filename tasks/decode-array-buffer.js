@@ -10,7 +10,7 @@ export function decodeArrayBuffer(arrayBuffer, done) {
       return;
     }
 
-    ctx.decodeAudioData(arrayBuffer, passDecoded);
+    ctx.decodeAudioData(arrayBuffer).then(passDecoded).catch(done);
   }
 
   function passDecoded(decodedAudioBuffer) {
