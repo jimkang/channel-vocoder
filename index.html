@@ -8,9 +8,12 @@
   <body class="center">
     <div id="status-message" class="hidden"></div>
 
-    <h1 class="title">Channel Vocoder</h1>
+    <h1 class="title">
+      <span class="explain">A channel vocoder walkthrough</span
+      ><span class="tool">Channel Vocoder</span>
+    </h1>
 
-    <div class="explain">
+    <div class="explain finding">
       <p>
         In the 1930s,
         <a target="_blank" href="https://en.wikipedia.org/wiki/Homer_Dudley"
@@ -55,29 +58,32 @@
       </p>
     </div>
 
+    <p>
+      <i
+        ><b>The first time through, all of the parameters will be fixed.</b> On
+        subsequent runs, you can change anything you want!</i
+      >
+    </p>
     <div class="explain">
-      <h3>What are we vocoding?</h3>
-      <p>
-        A vocoder needs at least two signals: A carrier signal and an
-        "information" signal. The information signal is usually speech, and the
-        carrier signal is usually a harmonically rich signal, like a sawtooth
-        wave or a cello recording.
-      </p>
-      <p>
-        In the original communication context, the goal was to faithfully
-        recreate the original information signal, and so a carrier signal was
-        chosen to optimize for that. Here, we want an "interesting" result
-        signal, one which resembles speech but also has the "pitched" qualities
-        of the carrier.
-      </p>
+      <div class="finding">
+        <h3>What are we vocoding?</h3>
+        <p>
+          A vocoder needs at least two signals: A carrier signal and an
+          "information" signal. The information signal is usually speech, and
+          the carrier signal is usually a harmonically rich signal, like a
+          sawtooth wave or a cello recording.
+        </p>
+        <p>
+          In the original communication context, the goal was to faithfully
+          recreate the original information signal, and so a carrier signal was
+          chosen to optimize for that. Here, we want an "interesting" result
+          signal, one which resembles speech but also has the "pitched"
+          qualities of the carrier.
+        </p>
+      </div>
       <p>
         I've chosen a bassoon snippet for the carrier signal and a recording of
         me talking for the information signal. <b>Listen to them.</b>
-      </p>
-      <p>
-        (You can use any audio files you want by clicking the Browse buttons
-        below, but I recommend you first
-        <i>go through this page once without changing anything</i>.)
       </p>
     </div>
     <span class="group tool">
@@ -125,30 +131,35 @@
     </span>
 
     <div class="explain">
-      <h3>Info channel signals</h3>
-      <p>
-        The first step is to filter the carrier signal so that we get rid of the
-        frequencies in ranges that aren't relevant to speech and keep the ones
-        that are. Dudley's original vocoder retained frequencies centered around
-        112.5, 337.5, 575, 850, 1200, 1700, 2350, 3250, 4600, and 6450 Hz. We're
-        just going to use six of these, dropping 112.5, 3250, 4600, and 6450,
-        just because that seems to work fine and is less work for the browser.
-      </p>
-      <p>
-        Once we run
-        <a target="_blank" href="https://en.wikipedia.org/wiki/Band-pass_filter"
-          >bandpass filters</a
-        >
-        centered at those frequencies, we'll get six separate signals containing
-        only frequencies near those six centers (337.5, 575, 850, 1200, 1700,
-        and 2350 Hz). These are the "channels" referred to by the name "channel
-        vocoder."
-      </p>
-      <p>
-        How near the frequencies must be to the centers of the bandpasses is
-        determined by the Q value. Q is the narrowness of the bandpasses. The
-        higher the Q, the narrower the frequency band.
-      </p>
+      <div class="finding">
+        <h3>Info channel signals</h3>
+        <p>
+          The first step is to filter the carrier signal so that we get rid of
+          the frequencies in ranges that aren't relevant to speech and keep the
+          ones that are. Dudley's original vocoder retained frequencies centered
+          around 112.5, 337.5, 575, 850, 1200, 1700, 2350, 3250, 4600, and 6450
+          Hz. We're just going to use six of these, dropping 112.5, 3250, 4600,
+          and 6450, just because that seems to work fine and is less work for
+          the browser.
+        </p>
+        <p>
+          Once we run
+          <a
+            target="_blank"
+            href="https://en.wikipedia.org/wiki/Band-pass_filter"
+            >bandpass filters</a
+          >
+          centered at those frequencies, we'll get six separate signals
+          containing only frequencies near those six centers (337.5, 575, 850,
+          1200, 1700, and 2350 Hz). These are the "channels" referred to by the
+          name "channel vocoder."
+        </p>
+        <p>
+          How near the frequencies must be to the centers of the bandpasses is
+          determined by the Q value. Q is the narrowness of the bandpasses. The
+          higher the Q, the narrower the frequency band.
+        </p>
+      </div>
       <p>
         <b
           >Hit "Get channel signals," then listen to the resulting channel
@@ -171,38 +182,43 @@
     </span>
 
     <div class="explain envelope-step step">
-      <h3>Envelope followers</h3>
+      <div class="finding">
+        <h3>Envelope followers</h3>
+        <p>
+          Next, we're going to run an
+          <a
+            target="_blank"
+            href="http://musicweb.ucsd.edu/~mpuckette/techniques/v0.05/book-html/node142.html"
+            >envelope follower</a
+          >
+          on these channel signals. An envelope follower measures the average
+          power of a signal. It's called an "envelope follower" because it
+          produces an envelope that follows the shape of the signal.
+        </p>
+        <p>
+          This averaging produces a signal that is smoother, meaning that it
+          jumps up and down less abruptly. (If we were going to use this for
+          communication, this would be nice because a signal with less
+          meaningful detail in it can be represented by a smaller amount of
+          data.)
+        </p>
+        <p>
+          We're not calculating straight averages, though; we have weights,
+          called smoothing factors, on how much quickly a rise in the signal
+          should affect the average and how quickly a fall should affect it.
+          With these we can affect output's the sensitivity to attack and decay
+          in the input.
+        </p>
+      </div>
       <p>
-        Next, we're going to run an
-        <a
-          target="_blank"
-          href="http://musicweb.ucsd.edu/~mpuckette/techniques/v0.05/book-html/node142.html"
-          >envelope follower</a
-        >
-        on these channel signals. An envelope follower measures the average
-        power of a signal. It's called an "envelope follower" because it
-        produces an envelope that follows the shape of the signal.
-      </p>
-      <p>
-        This averaging produces a signal that is smoother, meaning that it jumps
-        up and down less abruptly. (If we were going to use this for
-        communication, this would be nice because a signal with less meaningful
-        detail in it can be represented by a smaller amount of data.)
-      </p>
-      <p>
-        We're not calculating straight averages, though; we have weights, called
-        smoothing factors, on how much quickly a rise in the signal should
-        affect the average and how quickly a fall should affect it. With these
-        we can affect output's the sensitivity to attack and decay in the input.
-      </p>
-      <p>
-        The first time you do this, <i>leave the smoothing factors alone</i>,
-        but in subsequent runs, try messing with them.
         <b
           >Hit the "Get envelope followers for bands" button to run the envelope
-          followers on the channel signals</b
+          followers on the channel signals.</b
         >
-        and check out the results. (Some of them will be very quiet.)
+      </p>
+      <p>
+        Then, check out the results. (Some of them will be very quiet; that's
+        OK!)
       </p>
     </div>
 
@@ -249,30 +265,34 @@
     </button>
     <div class="carrier-bandpass-results stop-mode"></div>
     <span class="group modulate-step step">
+      <br />
       <div class="explain">
-        <h3>Modulate carrier channel signals with the envelopes</h3>
+        <div class="finding">
+          <h3>Modulate carrier channel signals with the envelopes</h3>
+          <p>
+            Now we're getting into the synthesis part of the process. The
+            previous steps extracted information from the input signals. Now
+            we'll put them together. First, we'll modulate the carrier channel
+            signals with the envelope signals (which we got by running the
+            envelope follower on the information channel signals).
+          </p>
+          <p>
+            By modulating, I mean multiplying. So, if a sample in a carrier
+            channel signal has the value 0.8 and the corresponding sample in the
+            envelope signal has the value 0.5, the sample in the result signal
+            will have the value 0.8 x 0.5 = 0.4. In Web Audio, we do this with a
+            <a
+              target="_blank"
+              href="https://developer.mozilla.org/en-US/docs/Web/API/GainNode"
+              >GainNode</a
+            >.
+          </p>
+        </div>
         <p>
-          Now we're getting into the synthesis part of the process. The previous
-          steps extracted information from the input signals. Now we'll put them
-          together. First, we'll modulate the carrier channel signals with the
-          envelope signals (which we got by running the envelope follower on the
-          information channel signals).
-        </p>
-        <p>
-          By modulating, I mean multiplying. So, if a sample in a carrier
-          channel signal has the value 0.8 and the corresponding sample in the
-          envelope signal has the value 0.5, the sample in the result signal
-          will have the value 0.8 x 0.5 = 0.4. In Web Audio, we do this with a
-          <a
-            target="_blank"
-            href="https://developer.mozilla.org/en-US/docs/Web/API/GainNode"
-            >GainNode</a
-          >.
-        </p>
-        <p>
-          Hit the Modulate button, then listen to the modulated signals. They
-          might <em>look</em> more different from their carrier channel
-          ancestors than the sound.
+          Hit the Modulate button, then listen to the modulated signals, but
+          also look at them. (The differences between the modulated signals and
+          their carrier channel ancestors may be more apparent via sight than
+          sound.)
         </p>
       </div>
       <label for="carrier-level">Carrier level</label>
@@ -316,36 +336,47 @@
 
     <div class="explain end-step step">
       <p>
-        ^ There it is! Our final signal! Give it a listen and scroll up to the
-        top to listen to the original input signals, for good measure.
+        ^ There it is! <b>Our final signal!</b> Give it a listen and scroll up
+        to the top to listen to the original input signals, for good measure.
       </p>
       <p>
-        So, we did it. By following these steps, we've synthesized a signal that
-        has characteristics of both the carrier signal and information signal,
+        We did it! By following these steps, we've synthesized a signal that has
+        characteristics of both the carrier signal and information signal,
         albeit with perhaps an
         <a
           target="_blank"
           href="https://ccrma.stanford.edu/~jos/sasp/Dudley_s_Channel_Vocoder.html#41649"
           >"unpleasant electrical accent"</a
-        >.
+        >. (Maybe we'll be able to do better than that in the future with a
+        <a
+          target="_blank"
+          href="https://ccrma.stanford.edu/~jos/sasp/Phase_Vocoder.html"
+          >phase vocoder</a
+        >.)
       </p>
+      <br />
+      <div class="finding">
+        <h3>New game+</h3>
+        <p>
+          If you want to do this again with the ability to provide your own
+          input signals and to change all of the parameters, you have two
+          options:
+        </p>
+        <ul>
+          <li>
+            <a href="">Re-run the walkthrough</a>. This time, you'll be able to
+            mess with everything.
+          </li>
+          <li>
+            <a href="#terse=yes&nonstop=yes">Switch into tool mode</a>. It will
+            let you get the output signal in one step, and it will also get all
+            of this explanatory text out of your way.
+          </li>
+        </ul>
+      </div>
       <p>
-        If you want to do this again, possibly with your own input signals, and
-        don't want to go through all of these steps,
-        <a href="#terse=yes&nonstop=yes">you can go into nonstop mode</a>. It
-        will also get all of this explanatory text out of your way.
-      </p>
-
-      <hr />
-
-      <p>
-        The code for this
-        <a href="https://github.com/jimkang/channel-vocoder">web app</a>
-        and the
-        <a href="https://github.com/jimkang/envelope-follower"
-          >envelope follower audio worklet</a
-        >
-        are on GitHub.
+        The code for this web app is
+        <a href="https://github.com/jimkang/channel-vocoder">on GitHub</a>.
       </p>
       <p>
         I wrote this as part of an exploration of signal processing that I'm
@@ -355,8 +386,12 @@
         patiently explained envelope followers to me and addressed other gaps in
         my understanding. So, thanks to Spencer and the Recurse Center!
       </p>
+      <br />
+      <hr />
+      <a class="homelink" href="https://jimkang.com">jimkang.com</a>
     </div>
-
+    <a class="tool" href="">Get a fuller explanation of channel vocoders.</a>
+    <a class="tool homelink" href="https://jimkang.com">jimkang.com</a>
     <div id="version-info"></div>
 
     <script src="index.js"></script>
