@@ -5,6 +5,8 @@ var infoLevelSel = select('#info-level');
 var smoothingUpSel = select('#smoothing-factor-up');
 var smoothingDownSel = select('#smoothing-factor-down');
 var qSel = select('#q-val');
+var carrierFileSel = select('#carrier-file');
+var infoFileSel = select('#info-file');
 
 export function renderParamControls({
   Q,
@@ -12,6 +14,7 @@ export function renderParamControls({
   smoothingFactorDown,
   carrierLevel,
   infoLevel,
+  disable,
   routeState,
 }) {
   qSel.on('blur', UpdateState('Q'));
@@ -25,6 +28,15 @@ export function renderParamControls({
   smoothingDownSel.node().value = smoothingFactorDown;
   carrierLevelSel.node().value = carrierLevel;
   infoLevelSel.node().value = infoLevel;
+
+  qSel.attr('disabled', disable ? '' : null);
+  smoothingUpSel.attr('disabled', disable ? '' : null);
+  smoothingDownSel.attr('disabled', disable ? '' : null);
+  carrierLevelSel.attr('disabled', disable ? '' : null);
+  infoLevelSel.attr('disabled', disable ? '' : null);
+
+  carrierFileSel.classed('hidden', disable);
+  infoFileSel.classed('hidden', disable);
 
   function UpdateState(key) {
     return function updateState() {

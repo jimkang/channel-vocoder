@@ -113,6 +113,8 @@ async function followRoute({
     smoothingFactorDown,
     carrierLevel,
     infoLevel,
+    disable:
+      !terseMode && !JSON.parse(localStorage.getItem('allowParamChange')),
     routeState,
   });
 }
@@ -267,6 +269,7 @@ async function mergeModulated() {
     if (!terseMode) {
       selectAll('.end-step').classed('hidden', false);
     }
+    localStorage.setItem('allowParamChange', JSON.stringify(true));
   }
 }
 
