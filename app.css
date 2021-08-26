@@ -71,9 +71,6 @@ a:visited {
   display: none;
 }
 
-.result {
-}
-
 canvas {
   border: solid 1px #555;
 }
@@ -112,6 +109,10 @@ label {
 }
 
 .explain {
+  display: none;
+}
+
+.explain-root .explain.hidden {
   display: none;
 }
 
