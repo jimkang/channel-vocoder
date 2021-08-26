@@ -110,6 +110,22 @@ label {
   font-size: 0.7em;
 }
 
+.explain {
+  display: none;
+}
+
+.explain-root .explain {
+  display: block;
+}
+
+.tool {
+  display: none;
+}
+
+.tool-root .tool {
+  display: block;
+}
+
 @media all and (max-height: 568px) {
   body {
     font-size: 18px;

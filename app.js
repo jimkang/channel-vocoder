@@ -4,6 +4,7 @@ import ep from 'errorback-promise';
 import { renderSource } from './renderers/render-source';
 import { renderModeControl } from './renderers/render-mode-control';
 import { renderParamControls } from './renderers/render-param-controls';
+import { renderExplain } from './renderers/render-explain';
 import { renderAudio } from 'render-audio';
 import ContextKeeper from 'audio-context-singleton';
 import { decodeArrayBuffer } from './tasks/decode-array-buffer';
@@ -64,7 +65,7 @@ var { getNewContext } = ContextKeeper({ offline: true });
   routeState = RouteState({
     followRoute,
     windowObject: window,
-    propsToCoerceToBool: ['nonstop'],
+    propsToCoerceToBool: ['nonstop', 'terse'],
   });
   routeState.routeFromHash();
 })();
@@ -78,7 +79,18 @@ async function followRoute({
   infoLevel = 10000.0,
   infoSrc,
   carrierSrc,
+  terse = false,
 }) {
+  if (!terse) {
+    infoLevel = 100000;
+    smoothingFactorDown = 0.995;
+    smoothingFactorUp = 0.01;
+    nonstop = false;
+    carrierSrc = 'media/donut.mp3';
+    infoSrc = 'media/talking.mp3';
+  }
+  renderExplain({ explain: !terse });
+
   renderSource({
     onBuffer: onCarrierBuffer,
     src: carrierSrc,
