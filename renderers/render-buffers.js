@@ -3,6 +3,7 @@ import { select } from 'd3-selection';
 import accessor from 'accessor';
 
 export function renderBuffers({ labeledBuffers, containerSelector }) {
+  labeledBuffers.sort(compareLabels);
   var containerSel = select(containerSelector);
   var boxes = containerSel
     .selectAll('.labeled-audio')
@@ -31,4 +32,11 @@ export function renderBuffers({ labeledBuffers, containerSelector }) {
 function classForLB(lb) {
   const labelString = '' + lb.label;
   return `labeled-audio-${labelString.replace(/\./g, '_')}`;
+}
+
+function compareLabels(a, b) {
+  if (+a.label < +b.label) {
+    return -1;
+  }
+  return 1;
 }
