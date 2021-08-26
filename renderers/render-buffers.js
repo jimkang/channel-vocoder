@@ -18,7 +18,7 @@ export function renderBuffers({ labeledBuffers, containerSelector }) {
   newBoxes.append('div').classed('file-audio', true);
 
   var existingBoxes = newBoxes.merge(boxes);
-  existingBoxes.select('.label').text(accessor('label'));
+  existingBoxes.select('.label').text(getLabelText);
   existingBoxes.each((lb) =>
     renderAudio({
       audioBuffer: lb.buffer,
@@ -39,4 +39,8 @@ function compareLabels(a, b) {
     return -1;
   }
   return 1;
+}
+
+function getLabelText({ label }) {
+  return label + ' Hz';
 }
