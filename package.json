@@ -41,7 +41,7 @@
     "errorback-promise": "^1.0.0",
     "handle-error-web": "^1.0.1",
     "lodash.curry": "^4.1.1",
-    "render-audio": "^1.1.1",
+    "render-audio": "^1.1.2",
     "request-body-mover": "^1.0.1",
     "route-state": "^2.0.5"
   }
