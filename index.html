@@ -1,4 +1,4 @@
-<html>
+<html class="center">
   <head>
     <title>Channel Vocoder</title>
     <link rel="stylesheet" href="app.css" />
@@ -13,36 +13,36 @@
     <div class="explain">
       <p>
         In the 1930s,
-        <a href="https://en.wikipedia.org/wiki/Homer_Dudley" rel="nofollow"
+        <a target="_blank" href="https://en.wikipedia.org/wiki/Homer_Dudley"
           >Homer Dudley</a
         >
         invented the vocoder while working at Bell Labs. (Vocoders are a kind of
         <a
+          target="_blank"
           href="https://jimkang.com/weblog/articles/miscellaneous-findings-008/"
-          rel="nofollow"
           >modulator</a
         >.)
       </p>
       <p>
         His vocoder was a
         <a
+          target="_blank"
           href="https://ccrma.stanford.edu/~jos/sasp/Dudley_s_Channel_Vocoder.html#41649"
-          rel="nofollow"
           >channel vocoder</a
         >. The original intention was to transmit intelligible voice signals
         over telephone wires, but it didn't get used that way. (However,
         <a
+          target="_blank"
           href="https://www.electronics-notes.com/articles/connectivity/2g-gsm/audio-codecs-vocoders-amr-celp.php"
-          rel="nofollow"
           >vocoders are used in cell phones today</a
         >.) Dudley mentions in
         <a
+          target="_blank"
           href="https://patentimages.storage.googleapis.com/29/15/cf/13438f97b5d58c/US2121142.pdf"
-          rel="nofollow"
           >his patent</a
         >
         that the vocoder had musical potential, and indeed,
-        <a href="https://en.wikipedia.org/wiki/Vocoder#History_2" rel="nofollow"
+        <a target="_blank" href="https://en.wikipedia.org/wiki/Vocoder#History_2"
           >as early as 1956</a
         >, people began using it to create what sounds like "robotic" singing.
       </p>
@@ -53,294 +53,291 @@
       </p>
     </div>
 
-    <div class="form">
-      <div class="explain">
-        <h3>What are we vocoding?</h3>
-        <p>
-          A vocoder needs at least two signals: A carrier signal and an
-          "information" signal. The information signal is usually speech, and
-          the carrier signal is usually a harmonically rich signal, like a
-          sawtooth wave or a cello recording.
-        </p>
-        <p>
-          In the original communication context, the goal was to faithfully
-          recreate the original information signal, and so a carrier signal was
-          chosen to optimize for that. Here, we want an "interesting" result
-          signal, one which resembles speech but also has the "pitched"
-          qualities of the carrier.
-        </p>
-        <p>
-          I've chosen a bassoon snippet for the carrier signal and a recording
-          of me talking for the information signal. <b>Listen to them.</b>
-        </p>
-        <p>
-          (You can use any audio files you want by clicking the Browse buttons
-          below, but I recommend you
-          <i
-            >go through this page without changing anything at least once
-            first.</i
-          >)
-        </p>
+    <div class="explain">
+      <h3>What are we vocoding?</h3>
+      <p>
+        A vocoder needs at least two signals: A carrier signal and an
+        "information" signal. The information signal is usually speech, and the
+        carrier signal is usually a harmonically rich signal, like a sawtooth
+        wave or a cello recording.
+      </p>
+      <p>
+        In the original communication context, the goal was to faithfully
+        recreate the original information signal, and so a carrier signal was
+        chosen to optimize for that. Here, we want an "interesting" result
+        signal, one which resembles speech but also has the "pitched" qualities
+        of the carrier.
+      </p>
+      <p>
+        I've chosen a bassoon snippet for the carrier signal and a recording of
+        me talking for the information signal. <b>Listen to them.</b> (You can
+        zoom in on the waveforms with your mouse or fingers.)
+      </p>
+      <p>
+        (You can use any audio files you want by clicking the Browse buttons
+        below, but I recommend you
+        <i
+          >go through this page without changing anything at least once
+          first.</i
+        >)
+      </p>
+    </div>
+    <span class="group tool">
+      <h3>Mode</h3>
+      <input type="radio" id="nonstop-button" name="mode" />
+      <label for="nonstop-button">Nonstop (faster)</label>
+      <br />
+      <input type="radio" id="stop-mode-button" name="mode" />
+      <label for="stop-mode-button"
+        >Stop after each step (slow but inspectable)</label
+      >
+    </span>
+
+    <span class="group">
+      <label for="carrier-file">Carrier audio</label>
+      <span class="expl tool"
+        >The signal you want to be modulated.(Usually a "harmonically rich"
+        source like a triangle wave or a bassoon.)</span
+      ><br />
+      <input
+        id="carrier-file"
+        class="input-source"
+        type="file"
+        accept="audio/*,.m4a,.ogg,.mp3,.wav"
+      />
+      <div class="carrier-file-audio hidden audio-display">
+        <audio class="carrier-file-audio-player" controls></audio>
       </div>
-      <span class="group tool">
-        <h3>Mode</h3>
-        <input type="radio" id="nonstop-button" name="mode" />
-        <label for="nonstop-button">Nonstop (faster)</label>
-        <br />
-        <input type="radio" id="stop-mode-button" name="mode" />
-        <label for="stop-mode-button"
-          >Stop after each step (slow but inspectable)</label
+    </span>
+
+    <span class="group">
+      <label for="info-file">Information audio</label>
+      <span class="expl tool"
+        >The signal that you want to do the modulating. (Usually speech.)</span
+      ><br />
+      <input
+        id="info-file"
+        class="input-source"
+        type="file"
+        accept="audio/*,.m4a,.ogg,.mp3,.wav"
+      />
+      <div class="info-file-audio hidden audio-display">
+        <audio class="info-file-audio-player" controls></audio>
+      </div>
+    </span>
+
+    <div class="explain">
+      <h3>Info channel signals</h3>
+      <p>
+        The first step is to filter the carrier signal so that we get rid of the
+        frequencies in ranges that aren't relevant to speech and keep the ones
+        that are. Dudley's original vocoder retained frequencies centered around
+        112.5, 337.5, 575, 850, 1200, 1700, 2350, 3250, 4600, and 6450 Hz. We're
+        just going to use six of these, dropping 112.5, 3250, 4600, and 6450,
+        just because that seems to work fine and is less work for the browser.
+      </p>
+      <p>
+        Once we run
+        <a target="_blank" href="https://en.wikipedia.org/wiki/Band-pass_filter"
+          >bandpass filters</a
         >
-      </span>
+        centered at those frequencies, we'll get six separate signals containing
+        only frequencies near those six centers (337.5, 575, 850, 1200, 1700,
+        and 2350 Hz). These are the "channels" referred to by the name "channel
+        vocoder."
+      </p>
+      <p>
+        How near the frequencies must be is determined by the Q value, which
+        sets the narrowness of the bandpasses. The higher the Q, the narrower
+        the frequency band.
+      </p>
+      <p>
+        <b
+          >Hit "Get channel signals," then listen to the resulting channel
+          signals.</b
+        >
+      </p>
+    </div>
 
-      <span class="group">
-        <label for="carrier-file">Carrier audio</label>
-        <span class="expl tool"
-          >The signal you want to be modulated.(Usually a "harmonically rich"
-          source like a triangle wave or a bassoon.)</span
-        ><br />
-        <input
-          id="carrier-file"
-          class="input-source"
-          type="file"
-          accept="audio/*, .m4a,.ogg,.mp3,.wav"
-        />
-        <div class="carrier-file-audio hidden audio-display">
-          <audio class="carrier-file-audio-player" controls></audio>
-        </div>
-      </span>
+    <span class="group">
+      <label for="q-val">Bandpass Q</label>
+      <span class="expl tool"
+        >How narrow the bands that we capture from the information audio should
+        be. Higher is narrower.</span
+      ><br />
+      <input id="q-val" type="number" value="5.0" /><br /><br />
+      <button id="channel-button" class="hidden stop-mode">
+        Get channel signals
+      </button>
+      <div class="bandpass-results stop-mode"></div>
+    </span>
 
-      <span class="group">
-        <label for="info-file">Information audio</label>
-        <span class="expl tool"
-          >The signal that you want to do the modulating. (Usually
-          speech.)</span
-        ><br />
-        <input
-          id="info-file"
-          class="input-source"
-          type="file"
-          accept="audio/*, .m4a,.ogg,.mp3,.wav"
-        />
-        <div class="info-file-audio hidden audio-display">
-          <audio class="info-file-audio-player" controls></audio>
-        </div>
-      </span>
+    <div class="explain">
+      <h3>Envelope followers</h3>
+      <p>
+        Next, we're going to run an
+        <a
+          target="_blank"
+          href="http://musicweb.ucsd.edu/~mpuckette/techniques/v0.05/book-html/node142.html"
+          >envelope follower</a
+        >
+        on these channel signals. An envelope follower measures the average
+        power of a signal. It's called an "envelope follower" because it
+        produces an envelope that follows the shape of the signal.
+      </p>
+      <p>
+        This averaging produces a signal that is smoother, meaning that it jumps
+        up and down less abruptly. (If we were going to use this for
+        communication, this would be nice because a signal with less meaningful
+        detail in it can be represented by a smaller amount of data.)
+      </p>
+      <p>
+        We're not calculating straight averages, though; we have weights, called
+        smoothing factors, on how much quickly a rise in the signal should
+        affect the average and how quickly a fall should affect it. With these
+        we can affect output's the sensitivity to attack and decay in the input.
+      </p>
+      <p>
+        The first time you do this, leave the smoothing factors alone, but in
+        subsequent runs, try messing with them. Hit the "Get envelope followers
+        for bands" button to run the envelope followers on the channel signals
+        and check out the results. (Some of them will be very quiet.)
+      </p>
+    </div>
 
+    <span class="group">
+      <label for="smoothing-factor-up">Smoothing factor, up</label>
+      <span class="expl tool"
+        >How smoothly we should trace declines in the bandpassed signals to
+        create envelopes. Higher is smoother, lower traces the signals more
+        tightly.</span
+      ><br />
+      <input id="smoothing-factor-up" type="number" value="0.3" /><br />
+      <label for="smoothing-factor-down">Smoothing factor, down</label>
+      <span class="expl tool"
+        >How smoothly we should trace rises in the bandpassed signals to create
+        envelopes. Higher is smoother, lower traces the signals more
+        tightly.</span
+      ><br />
+      <input
+        id="smoothing-factor-down"
+        type="number"
+        value="0.995"
+      /><br /><br />
+      <button id="envelope-button" class="stop-mode hidden">
+        Get envelope followers for bands
+      </button>
+      <div class="envelopes stop-mode"></div>
+    </span>
+    <div class="explain">
+      <h3>Carrier channel signals</h3>
+      <p>
+        We're going to split the carrier signal into channels, just as we did
+        with the information signal. Hit the "Get channel signals for carrier"
+        button to run the bandpass filters on the carrier, then check out the
+        results.
+      </p>
+    </div>
+    <span class="group">
+      <button id="carrier-channel-button" class="hidden stop-mode">
+        Get channel signals for carrier
+      </button>
+      <div class="carrier-bandpass-results stop-mode"></div>
       <div class="explain">
-        <h3>Info channel signals</h3>
+        <h3>Modulate carrier channel signals with the envelopes</h3>
         <p>
-          The first step is to filter the carrier signal so that we get rid of
-          the frequencies in ranges that aren't relevant to speech and keep the
-          ones that are. Dudley's original vocoder retained frequencies centered
-          around 112.5, 337.5, 575, 850, 1200, 1700, 2350, 3250, 4600, and 6450
-          Hz. We're just going to use six of these, dropping 112.5, 3250, 4600,
-          and 6450, just because that seems to work fine and is less work for
-          the browser.
+          Now we're getting into the synthesis part of the process. The previous
+          steps extracted information from the input signals. Now we'll put them
+          together. First, we'll modulate the carrier channel signals with the
+          envelope signals (which we got by running the envelope follower on the
+          information channel signals).
         </p>
         <p>
-          Once we run
+          By modulating, I mean multiplying. So, if a sample in a carrier
+          channel signal has the value 0.8 and the corresponding sample in the
+          envelope signal has the value 0.5, the sample in the result signal
+          will have the value 0.8 x 0.5 = 0.4. In Web Audio, we do this with a
           <a
-            href="https://en.wikipedia.org/wiki/Band-pass_filter"
-            rel="nofollow"
-            >bandpass filters</a
-          >
-          centered at those frequencies, we'll get six separate signals
-          containing only frequencies near those six centers (337.5, 575, 850,
-          1200, 1700, and 2350 Hz). These are the "channels" referred to by the
-          name "channel vocoder."
+            target="_blank"
+            href="https://developer.mozilla.org/en-US/docs/Web/API/GainNode"
+            >GainNode</a
+          >.
         </p>
         <p>
-          How near the frequencies must be is determined by the Q value, which
-          sets the narrowness of the bandpasses. The higher the Q, the narrower
-          the frequency band.
-        </p>
-        <p>
-          <b
-            >Hit "Get channel signals," then listen to the resulting channel
-            signals.</b
-          >
+          Hit the Modulate button, then listen to the modulated signals. They
+          might <em>look</em> more different from their carrier channel
+          ancestors than the sound.
         </p>
       </div>
+      <label for="carrier-level">Carrier level</label>
+      <span class="expl"
+        >How loud the carrier input to the modulation should be.</span
+      ><br />
+      <input id="carrier-level" type="number" value="0.01" /><br />
+      <label for="info-level">Info level</label>
+      <span class="expl"
+        >How loud the information input to the modulation should be.</span
+      ><br />
+      <input id="info-level" type="number" value="10000.0" />
+    </span>
 
-      <span class="group">
-        <label for="q-val">Bandpass Q</label>
-        <span class="expl tool"
-          >How narrow the bands that we capture from the information audio
-          should be. Higher is narrower.</span
-        ><br />
-        <input id="q-val" type="number" value="5.0" /><br /><br />
-        <button id="channel-button" class="hidden stop-mode">
-          Get channel signals
-        </button>
-        <div class="bandpass-results stop-mode"></div>
-      </span>
+    <span class="group stop-mode">
+      <button id="modulate-button" class="hidden">Modulate</button>
+      <div class="modulated-carrier-bandpasses"></div>
+    </span>
 
-      <div class="explain">
-        <h3>Envelope followers</h3>
-        <p>
-          Next, we're going to run an
-          <a
-            href="http://musicweb.ucsd.edu/~mpuckette/techniques/v0.05/book-html/node142.html"
-            rel="nofollow"
-            >envelope follower</a
-          >
-          on these channel signals. An envelope follower measures the average
-          power of a signal. It's called an "envelope follower" because it
-          produces an envelope that follows the shape of the signal.
-        </p>
-        <p>
-          This averaging produces a signal that is smoother, meaning that it
-          jumps up and down less abruptly. (If we were going to use this for
-          communication, this would be nice because a signal with less
-          meaningful detail in it can be represented by a smaller amount of
-          data.)
-        </p>
-        <p>
-          We're not calculating straight averages, though; we have weights,
-          called smoothing factors, on how much quickly a rise in the signal
-          should affect the average and how quickly a fall should affect it.
-          With these we can affect output's the sensitivity to attack and decay
-          in the input.
-        </p>
-        <p>
-          The first time you do this, leave the smoothing factors alone, but in
-          subsequent runs, try messing with them. Hit the "Get envelope
-          followers for bands" button to run the envelope followers on the
-          channel signals and check out the results. (Some of them will be very
-          quiet.)
-        </p>
+    <div class="explain">
+      <h3>Put the modulated signals back together</h3>
+      <p>
+        Hit the "Merge modulated signals" button to assemble the modulated
+        signal into the final result signal. This will sum all of the modulate
+        signals together. Give it a listen.
+      </p>
+    </div>
+    <span class="group">
+      <button id="merge-button" class="hidden stop-mode">
+        Merge modulated signals
+      </button>
+
+      <button id="vocode-button" class="hidden">Vocode</button>
+
+      <div class="result-audio audio-display hidden">
+        <audio class="result-audio-player" controls></audio>
       </div>
+    </span>
 
-      <span class="group">
-        <label for="smoothing-factor-up">Smoothing factor, up</label>
-        <span class="expl tool"
-          >How smoothly we should trace declines in the bandpassed signals to
-          create envelopes. Higher is smoother, lower traces the signals more
-          tightly.</span
-        ><br />
-        <input id="smoothing-factor-up" type="number" value="0.3" /><br />
-        <label for="smoothing-factor-down">Smoothing factor, down</label>
-        <span class="expl tool"
-          >How smoothly we should trace rises in the bandpassed signals to
-          create envelopes. Higher is smoother, lower traces the signals more
-          tightly.</span
-        ><br />
-        <input
-          id="smoothing-factor-down"
-          type="number"
-          value="0.995"
-        /><br /><br />
-        <button id="envelope-button" class="stop-mode hidden">
-          Get envelope followers for bands
-        </button>
-        <div class="envelopes stop-mode"></div>
-      </span>
-      <div class="explain">
-        <h3>Carrier channel signals</h3>
-        <p>
-          We're going to split the carrier signal into channels, just as we did
-          with the information signal. Hit the "Get channel signals for carrier"
-          button to run the bandpass filters on the carrier, then check out the
-          results.
-        </p>
-      </div>
-      <span class="group">
-        <button id="carrier-channel-button" class="hidden stop-mode">
-          Get channel signals for carrier
-        </button>
-        <div class="carrier-bandpass-results stop-mode"></div>
-        <div class="explain">
-          <h3>Modulate carrier channel signals with the envelopes</h3>
-          <p>
-            Now we're getting into the synthesis part of the process. The
-            previous steps extracted information from the input signals. Now
-            we'll put them together. First, we'll modulate the carrier channel
-            signals with the envelope signals (which we got by running the
-            envelope follower on the information channel signals).
-          </p>
-          <p>
-            By modulating, I mean multiplying. So, if a sample in a carrier
-            channel signal has the value 0.8 and the corresponding sample in the
-            envelope signal has the value 0.5, the sample in the result signal
-            will have the value 0.8 x 0.5 = 0.4. In Web Audio, we do this with a
-            <a
-              href="https://developer.mozilla.org/en-US/docs/Web/API/GainNode"
-              rel="nofollow"
-              >GainNode</a
-            >
-          </p>
-          <p>
-            Hit the Modulate button, then listen to the modulated signals. They
-            might <em>look</em> more different from their carrier channel
-            ancestors than the sound.
-          </p>
-        </div>
-        <label for="carrier-level">Carrier level</label>
-        <span class="expl"
-          >How loud the carrier input to the modulation should be.</span
-        ><br />
-        <input id="carrier-level" type="number" value="0.01" /><br />
-        <label for="info-level">Info level</label>
-        <span class="expl"
-          >How loud the information input to the modulation should be.</span
-        ><br />
-        <input id="info-level" type="number" value="10000.0" />
-      </span>
+    <div class="explain">
+      <p>
+        So, now we have a signal that has characteristics of both the carrier
+        signal and information signal.
+      </p>
+      <p>
+        If you want to do this again, possibly with your own input signals, and
+        don't want to go through all of these steps,
+        <a href="#terse=yes&nonstop=yes">you can go into nonstop mode</a>. It
+        will also get all of this explanatory text out of your way.
+      </p>
 
-      <span class="group stop-mode">
-        <button id="modulate-button" class="hidden">Modulate</button>
-        <div class="modulated-carrier-bandpasses"></div>
-      </span>
+      <hr>
 
-      <div class="explain">
-        <h3>Put the modulated signals back together</h3>
-        <p>
-          Hit the "Merge modulated signals" button to assemble the modulated
-          signal into the final result signal. This will sum all of the modulate
-          signals together. Give it a listen.
-        </p>
-      </div>
-      <span class="group">
-        <button id="merge-button" class="hidden stop-mode">
-          Merge modulated signals
-        </button>
-
-        <button id="vocode-button" class="hidden">Vocode</button>
-
-        <div class="result-audio audio-display hidden">
-          <audio class="result-audio-player" controls></audio>
-        </div>
-      </span>
-
-      <div class="explain">
-        <p>
-          So, now we have a signal that has characteristics of both the carrier
-          signal and information signal.
-        </p>
-        <p>
-          If you want to do this again, possibly with your own input signals,
-          and don't want to go through all of these steps,
-          <a href="#terse=yes&nonstop=yes">you can go into nonstop mode</a>. It will also
-          get all of this explanatory text out of your way.
-        </p>
-        <p>
-          You can check out the <a href="https://github.com/jimkang/channel-vocoder"
-            >code for this web app</a
-          > and the
-          <a href="https://github.com/jimkang/envelope-follower"
-            >code for the envelop follower audio worklet</a
-          >, if you like.
-        </p>
-        <p>
-          I wrote this as part of an exploration of signal processing that I'm
-          doing (virtually) at the
-          <a href="https://recurse.com" rel="nofollow">Recurse Center</a>.
-          <a href="http://ssfrr.com/" rel="nofollow">Spencer Russell</a>, a
-          Recurse Center alum, patiently explained envelope followers to me and
-          addressed other gaps in my understanding. Thanks to them and him!
-        </p>
-      </div>
+      <p>
+        You can check out the
+        <a href="https://github.com/jimkang/channel-vocoder"
+          >code for this web app</a
+        >
+        and the
+        <a href="https://github.com/jimkang/envelope-follower"
+          >code for the envelop follower audio worklet</a
+        >, if you like.
+      </p>
+      <p>
+        I wrote this as part of an exploration of signal processing that I'm
+        doing (virtually) at the
+        <a href="https://recurse.com">Recurse Center</a>.
+        <a href="http://ssfrr.com/">Spencer Russell</a>, a Recurse Center alum,
+        patiently explained envelope followers to me and addressed other gaps in
+        my understanding. Thanks to them and him!
+      </p>
     </div>
 
     <div id="version-info"></div>

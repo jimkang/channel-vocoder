@@ -30,6 +30,7 @@
     "sirv-cli": "^1.0.12"
   },
   "dependencies": {
+    "accessor": "^3.0.0",
     "audio-context-singleton": "^1.2.4",
     "audiobuffer-to-wav": "^1.0.0",
     "await-to-js": "^3.0.0",
@@ -40,7 +41,7 @@
     "errorback-promise": "^1.0.0",
     "handle-error-web": "^1.0.1",
     "lodash.curry": "^4.1.1",
-    "render-audio": "^1.0.0",
+    "render-audio": "^1.1.1",
     "request-body-mover": "^1.0.1",
     "route-state": "^2.0.5"
   }

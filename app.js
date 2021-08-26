@@ -126,6 +126,7 @@ function onCarrierBuffer(buffer) {
     renderAudio({
       audioBuffer: carrierBuffer,
       containerSelector: '.carrier-file-audio',
+      fitToParentWidth: true,
     });
   }
 }
@@ -144,6 +145,7 @@ function onInfoBuffer(buffer) {
     renderAudio({
       audioBuffer: infoBuffer,
       containerSelector: '.info-file-audio',
+      fitToParentWidth: true,
     });
   }
 }
@@ -230,6 +232,7 @@ async function mergeModulated() {
     renderAudio({
       audioBuffer: renderedBuffer,
       containerSelector: '.result-audio',
+      fitToParentWidth: true,
     });
   }
 }

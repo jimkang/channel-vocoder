@@ -22,6 +22,8 @@ export function renderBuffers({ labeledBuffers, containerSelector }) {
     renderAudio({
       audioBuffer: lb.buffer,
       containerSelector: `${containerSelector} .${classForLB(lb)}`,
+      fitToParentWidth: true,
+      zoomable: true,
     })
   );
 }
