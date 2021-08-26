@@ -28,7 +28,7 @@ export function renderParamControls({
 
   function UpdateState(key) {
     return function updateState() {
-      routeState.addToRoute({ [key]: this.value });
+      routeState.addToRoute({ [key]: this.value }, false);
     };
   }
 }
