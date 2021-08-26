@@ -14,6 +14,7 @@ import { ApplyEnvelope } from './updaters/apply-envelope';
 import RouteState from 'route-state';
 import { runVocodeChain } from './updaters/vocode-chain';
 import { connectBufferMergerToDest } from './audio-graph/connect-merger';
+import { selectAll } from 'd3-selection';
 
 var debug = false;
 var routeState;
@@ -23,6 +24,7 @@ var labeledInfoBandpassBuffers = [];
 var labeledEnvelopes = [];
 var labeledCarrierBandpassBuffers = [];
 var labeledModulatedBuffers = [];
+var terseMode = false;
 
 // https://patentimages.storage.googleapis.com/29/15/cf/13438f97b5d58c/US2121142.pdf
 var bandpassCenters = [
@@ -81,7 +83,8 @@ async function followRoute({
   carrierSrc,
   terse = false,
 }) {
-  if (!terse) {
+  terseMode = terse;
+  if (!terseMode) {
     infoLevel = 100000;
     smoothingFactorDown = 0.995;
     smoothingFactorUp = 0.01;
@@ -89,7 +92,8 @@ async function followRoute({
     carrierSrc = 'media/donut.mp3';
     infoSrc = 'media/talking.mp3';
   }
-  renderExplain({ explain: !terse });
+  renderModeControl({ nonstop, onModeChange });
+  renderExplain({ explain: !terseMode });
 
   renderSource({
     onBuffer: onCarrierBuffer,
@@ -101,7 +105,6 @@ async function followRoute({
     src: infoSrc,
     inputSelector: '#info-file',
   });
-  renderModeControl({ nonstop, onModeChange });
   renderParamControls({
     Q,
     smoothingFactorUp,
@@ -127,6 +130,7 @@ function onCarrierBuffer(buffer) {
       audioBuffer: carrierBuffer,
       containerSelector: '.carrier-file-audio',
       fitToParentWidth: true,
+      //zoomable: true,
     });
   }
 }
@@ -146,6 +150,7 @@ function onInfoBuffer(buffer) {
       audioBuffer: infoBuffer,
       containerSelector: '.info-file-audio',
       fitToParentWidth: true,
+      //zoomable: true,
     });
   }
 }
@@ -157,9 +162,16 @@ function getChannelSignals() {
     inBuffer: infoBuffer,
     labeledBuffers: labeledInfoBandpassBuffers,
     containerSelector: '.bandpass-results',
-    postRunFn: () => envelopeButton.classList.remove('hidden'),
+    postRunFn: onChannelSignals,
   });
   bandpassCenters.forEach(runInfoBandpass);
+}
+
+function onChannelSignals() {
+  envelopeButton.classList.remove('hidden');
+  if (!terseMode) {
+    selectAll('.envelope-step').classed('hidden', false);
+  }
 }
 
 function getCarrierChannelSignals() {
@@ -169,10 +181,17 @@ function getCarrierChannelSignals() {
     inBuffer: carrierBuffer,
     labeledBuffers: labeledCarrierBandpassBuffers,
     containerSelector: '.carrier-bandpass-results',
-    postRunFn: () => modulateButton.classList.remove('hidden'),
+    postRunFn: onCarrierChannelSignals,
   });
 
   bandpassCenters.forEach(runCarrierBandpass);
+}
+
+function onCarrierChannelSignals() {
+  modulateButton.classList.remove('hidden');
+  if (!terseMode) {
+    selectAll('.modulate-step').classed('hidden', false);
+  }
 }
 
 function getEnvelopes() {
@@ -184,6 +203,9 @@ function getEnvelopes() {
       smoothingFactorDown: +smoothingDownInput.value,
     })
   );
+  if (!terseMode) {
+    selectAll('.carrier-channel-step').classed('hidden', false);
+  }
 }
 
 function modulateCarrierBandpasses() {
@@ -193,14 +215,19 @@ function modulateCarrierBandpasses() {
     labeledEnvelopes,
     carrierLevel: +carrierLevelInput.value,
     infoLevel: +infoLevelInput.value,
-    postRunFn() {
-      if (labeledModulatedBuffers.length > bandpassCenters.length - 1) {
-        mergeButton.classList.remove('hidden');
-        debug ? mergeButton.click() : null;
-      }
-    },
+    postRunFn: onModulate,
   });
   labeledCarrierBandpassBuffers.forEach(applyEnvelope);
+}
+
+function onModulate() {
+  if (labeledModulatedBuffers.length > bandpassCenters.length - 1) {
+    mergeButton.classList.remove('hidden');
+    debug ? mergeButton.click() : null;
+  }
+  if (!terseMode) {
+    selectAll('.merge-step').classed('hidden', false);
+  }
 }
 
 async function mergeModulated() {
@@ -233,7 +260,11 @@ async function mergeModulated() {
       audioBuffer: renderedBuffer,
       containerSelector: '.result-audio',
       fitToParentWidth: true,
+      //zoomable: true,
     });
+    if (!terseMode) {
+      selectAll('.end-step').classed('hidden', false);
+    }
   }
 }
 

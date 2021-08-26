@@ -23,7 +23,7 @@ export function renderBuffers({ labeledBuffers, containerSelector }) {
       audioBuffer: lb.buffer,
       containerSelector: `${containerSelector} .${classForLB(lb)}`,
       fitToParentWidth: true,
-      zoomable: true,
+      //zoomable: true,
     })
   );
 }

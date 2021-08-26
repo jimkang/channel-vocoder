@@ -72,16 +72,12 @@
       </p>
       <p>
         I've chosen a bassoon snippet for the carrier signal and a recording of
-        me talking for the information signal. <b>Listen to them.</b> (You can
-        zoom in on the waveforms with your mouse or fingers.)
+        me talking for the information signal. <b>Listen to them.</b>
       </p>
       <p>
         (You can use any audio files you want by clicking the Browse buttons
-        below, but I recommend you
-        <i
-          >go through this page without changing anything at least once
-          first.</i
-        >)
+        below, but I recommend you first
+        <i>go through this page once without changing anything</i>.)
       </p>
     </div>
     <span class="group tool">
@@ -174,7 +170,7 @@
       <div class="bandpass-results stop-mode"></div>
     </span>
 
-    <div class="explain">
+    <div class="explain envelope-step step">
       <h3>Envelope followers</h3>
       <p>
         Next, we're going to run an
@@ -207,7 +203,7 @@
       </p>
     </div>
 
-    <span class="group">
+    <span class="group envelope-step step">
       <label for="smoothing-factor-up">Smoothing factor, up</label>
       <span class="expl tool"
         >How smoothly we should trace declines in the bandpassed signals to
@@ -231,20 +227,25 @@
       </button>
       <div class="envelopes stop-mode"></div>
     </span>
-    <div class="explain">
+    <div class="explain carrier-channel-step step">
       <h3>Carrier channel signals</h3>
       <p>
         We're going to split the carrier signal into channels, just as we did
-        with the information signal. Hit the "Get channel signals for carrier"
-        button to run the bandpass filters on the carrier, then check out the
-        results.
+        with the information signal.
+        <b
+          >Hit the "Get channel signals for carrier" button to run the bandpass
+          filters on the carrier, then check out the results.</b
+        >
       </p>
     </div>
-    <button id="carrier-channel-button" class="hidden stop-mode">
+    <button
+      id="carrier-channel-button"
+      class="hidden stop-mode carrier-channel-step step"
+    >
       Get channel signals for carrier
     </button>
-    <span class="group">
-      <div class="carrier-bandpass-results stop-mode"></div>
+    <div class="carrier-bandpass-results stop-mode"></div>
+    <span class="group modulate-step step">
       <div class="explain">
         <h3>Modulate carrier channel signals with the envelopes</h3>
         <p>
@@ -283,12 +284,12 @@
       <input id="info-level" type="number" value="10000.0" />
     </span>
 
-    <span class="group stop-mode">
+    <span class="group stop-mode modulate-step step">
       <button id="modulate-button" class="hidden">Modulate</button>
       <div class="modulated-carrier-bandpasses"></div>
     </span>
 
-    <div class="explain">
+    <div class="explain merge-step step">
       <h3>Put the modulated signals back together</h3>
       <p>
         Hit the "Merge modulated signals" button to assemble the modulated
@@ -296,7 +297,7 @@
         signals together. Give it a listen.
       </p>
     </div>
-    <span class="group">
+    <span class="group merge-step step">
       <button id="merge-button" class="hidden stop-mode">
         Merge modulated signals
       </button>
@@ -308,7 +309,7 @@
       </div>
     </span>
 
-    <div class="explain">
+    <div class="explain end-step step">
       <p>
         So, now we have a signal that has characteristics of both the carrier
         signal and information signal.
