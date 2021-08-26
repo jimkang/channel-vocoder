@@ -145,9 +145,9 @@
         vocoder."
       </p>
       <p>
-        How near the frequencies must be is determined by the Q value, which
-        sets the narrowness of the bandpasses. The higher the Q, the narrower
-        the frequency band.
+        How near the frequencies must be to the centers of the bandpasses is
+        determined by the Q value. Q is the narrowness of the bandpasses. The
+        higher the Q, the narrower the frequency band.
       </p>
       <p>
         <b
@@ -196,9 +196,12 @@
         we can affect output's the sensitivity to attack and decay in the input.
       </p>
       <p>
-        The first time you do this, leave the smoothing factors alone, but in
-        subsequent runs, try messing with them. Hit the "Get envelope followers
-        for bands" button to run the envelope followers on the channel signals
+        The first time you do this, <i>leave the smoothing factors alone</i>,
+        but in subsequent runs, try messing with them.
+        <b
+          >Hit the "Get envelope followers for bands" button to run the envelope
+          followers on the channel signals</b
+        >
         and check out the results. (Some of them will be very quiet.)
       </p>
     </div>
@@ -292,9 +295,11 @@
     <div class="explain merge-step step">
       <h3>Put the modulated signals back together</h3>
       <p>
-        <b>Hit the "Merge modulated signals" button to assemble the modulated
-        signal into the final result signal.</b> This will sum all of the modulate
-        signals together.
+        <b
+          >Hit the "Merge modulated signals" button to assemble the modulated
+          signal into the final result signal.</b
+        >
+        This will sum all of the modulate signals together.
       </p>
     </div>
     <span class="group merge-step step">
@@ -311,8 +316,13 @@
 
     <div class="explain end-step step">
       <p>
-        ^ There it is! Our final signal! Give it a listen and scroll up to the top to listen to the original input signals, for good measure.</p><p>
-        So, we did it. By following these steps, we've synthesized a signal that has characteristics of both the carrier signal and information signal, albeit with perhaps an
+        ^ There it is! Our final signal! Give it a listen and scroll up to the
+        top to listen to the original input signals, for good measure.
+      </p>
+      <p>
+        So, we did it. By following these steps, we've synthesized a signal that
+        has characteristics of both the carrier signal and information signal,
+        albeit with perhaps an
         <a
           target="_blank"
           href="https://ccrma.stanford.edu/~jos/sasp/Dudley_s_Channel_Vocoder.html#41649"
@@ -330,13 +340,12 @@
 
       <p>
         The code for this
-        <a href="https://github.com/jimkang/channel-vocoder"
-          >web app</a
-        >
+        <a href="https://github.com/jimkang/channel-vocoder">web app</a>
         and the
         <a href="https://github.com/jimkang/envelope-follower"
           >envelope follower audio worklet</a
-        > are on GitHub.
+        >
+        are on GitHub.
       </p>
       <p>
         I wrote this as part of an exploration of signal processing that I'm
