@@ -85,9 +85,11 @@ async function followRoute({
 }) {
   terseMode = terse;
   if (!terseMode) {
-    infoLevel = 100000;
-    smoothingFactorDown = 0.995;
-    smoothingFactorUp = 0.01;
+    Q = 1.0;
+    carrierLevel = 0.05;
+    infoLevel = 4000;
+    smoothingFactorDown = 0.7;
+    smoothingFactorUp = 0.3;
     nonstop = false;
     carrierSrc = 'media/donut.mp3';
     infoSrc = 'media/talking.mp3';
