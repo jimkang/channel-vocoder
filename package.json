@@ -1,6 +1,6 @@
 {
   "name": "channel-vocoder",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A crude channel vocoder of sorts.",
   "main": "index.js",
   "prichannel-vocodere": true,
