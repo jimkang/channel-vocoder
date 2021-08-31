@@ -1,6 +1,6 @@
 # channel-vocoder
 
-A crude channel vocoder.
+A channel vocoder. [Try it here.](https://jimkang.com/channel-vocoder/)
 
 ## Getting it running
 
