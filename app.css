@@ -2,7 +2,8 @@ body {
   font-size: 24px;
   font-family: Ubuntu, Arial, Helvetica, sans-serif;
   line-height: 1.52;
-  background-color: #fcfcfc;
+  --bgcolor: #fcfcfc;
+  background-color: var(--bgcolor);
   text-rendering: optimizeLegibility;
   color: #555;
   margin-bottom: 2rem;
@@ -147,4 +148,27 @@ label {
 .labeled-audio .label {
   margin-top: 0.5rem;
   margin-bottom: 0;
+}
+
+table {
+  border-collapse: collapse;
+  table-layout: fixed;
+  border-radius: 4px;
+  background-color: var(--bgcolor);
+}
+
+tr:nth-child(3) {
+  font-weight: bold;
+  background-color: #88e195;
+}
+
+td {
+  border: solid 2px;
+  width: 3em;
+  text-align: center;
+  padding: 8px;
+}
+
+td:first-child {
+  text-align: start;
 }
